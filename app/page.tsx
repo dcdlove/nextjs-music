@@ -5,7 +5,7 @@ export default function Home() {
   const audioRef = useRef<HTMLAudioElement>(null)
 
   const [audioUrl, setAudioUrl] = useState<string>('https://cdn.jsdelivr.net/gh/dcdlove/oss/music/Havnevik-Solow.lkmp3')
-  const [playlist, setPlaylist] = useState<{ singer: string; title: string; ext: string; url: string,url2: string,null?:boolean }[]>([])
+  const [playlist, setPlaylist] = useState<{ singer: string; title: string; ext: string; url: string, url2: string, null?: boolean }[]>([])
   const [searchTerm, setSearchTerm] = useState<string>('')
   const [isShuffle, setIsShuffle] = useState<boolean>(false)
 
@@ -16,7 +16,7 @@ export default function Home() {
     const list = data.rows.map((n: { singer: string; title: string; ext: string }) => ({
       ...n,
       //url: encodeURIComponent(`https://cdn.jsdelivr.net/gh/dcdlove/past@main/music/${n.singer}-${n.title}${n.ext}`),
-      url: encodeURIComponent(`https://cdn.jsdelivr.net/gh/dcdlove/oss/music/${n.singer}-${n.title}.lk${n.ext.replace('.','')}`)
+      url: encodeURIComponent(`https://cdn.jsdelivr.net/gh/dcdlove/oss/music/${n.singer}-${n.title}.lk${n.ext.replace('.', '')}`)
     }))
     setPlaylist(list)
   }
@@ -59,6 +59,35 @@ export default function Home() {
     )
   })
 
+  const [likedSongs, setLikedSongs] = useState<Set<string>>(new Set())
+
+  // 加载喜欢的歌曲
+  useEffect(() => {
+    const stored = localStorage.getItem('likedSongs')
+    if (stored) {
+      setLikedSongs(new Set(JSON.parse(stored)))
+    }
+  }, [])
+
+  // 更新 localStorage
+  const updateLocalStorage = (updatedSet: Set<string>) => {
+    localStorage.setItem('likedSongs', JSON.stringify(Array.from(updatedSet)))
+  }
+
+  // 切换喜欢状态
+  const toggleLike = (url: string) => {
+    const decodedUrl = decodeURIComponent(url)
+    const updated = new Set(likedSongs)
+    if (updated.has(decodedUrl)) {
+      updated.delete(decodedUrl)
+    } else {
+      updated.add(decodedUrl)
+    }
+    setLikedSongs(updated)
+    updateLocalStorage(updated)
+  }
+
+
   return (
     <div className="max-w-xl mx-auto p-4 text-gray-800 font-sans">
       <h1 className="text-xl font-bold mb-3 text-center">🎵音乐播放器</h1>
@@ -89,11 +118,10 @@ export default function Home() {
 
         <button
           onClick={() => setIsShuffle(prev => !prev)}
-          className={`px-3 py-2 text-sm rounded border mt-1 sm:mt-0 transition ${
-            isShuffle
-              ? 'bg-blue-500 text-white border-blue-600'
-              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
-          }`}
+          className={`px-3 py-2 text-sm rounded border mt-1 sm:mt-0 transition ${isShuffle
+            ? 'bg-blue-500 text-white border-blue-600'
+            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
+            }`}
         >
           {isShuffle ? '🔀 随机播放中' : '🎵 顺序播放'}
         </button>
@@ -111,15 +139,29 @@ export default function Home() {
           return (
             <li
               key={index}
-              onClick={() => setAudioUrl(decodedUrl)}
-              className={`flex items-center gap-2 p-3 cursor-pointer transition ${
-                isPlaying ? 'bg-blue-100 text-blue-800 font-semibold' : 'hover:bg-gray-50'
-              } ${item.null ? 'text-red-400' : ''}`}
+              className={`flex items-center justify-between gap-2 p-3 cursor-pointer transition ${isPlaying ? 'bg-blue-100 text-blue-800 font-semibold' : 'hover:bg-gray-50'
+                } ${item.null ? 'text-red-400' : ''}`}
             >
-              <span className="w-6 text-right text-gray-500">{index + 1}.</span>
-              <span>{isPlaying ? '🔊' : '🎵'}</span>
-              <span className="truncate">{item.singer} - {item.title}</span>
+              <div
+                onClick={() => setAudioUrl(decodedUrl)}
+                className="flex-1 flex items-center gap-2"
+              >
+                <span className="w-6 text-right text-gray-500">{index + 1}.</span>
+                <span>{isPlaying ? '🔊' : '🎵'}</span>
+                <span className="truncate">{item.singer} - {item.title}</span>
+              </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  toggleLike(item.url)
+                }}
+                className="text-xl"
+                title={likedSongs.has(decodedUrl) ? '取消喜欢' : '标记为喜欢'}
+              >
+                {likedSongs.has(decodedUrl) ? '❤️' : '🤍'}
+              </button>
             </li>
+
           )
         })}
       </ul>
