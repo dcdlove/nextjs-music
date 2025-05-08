@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from 'react'
 export default function Home() {
   const audioRef = useRef<HTMLAudioElement>(null)
 
-  const [audioUrl, setAudioUrl] = useState<string>('https://cdn.jsdelivr.net/gh/dcdlove/nextjs-music@main/public/%E4%B8%83%E5%85%AC%E4%B8%BB-%E6%96%BD%E5%B1%95%E5%92%92%E8%AF%AD.lkmp3')
-  const [playlist, setPlaylist] = useState<{ singer: string; title: string; ext: string; url: string }[]>([])
+  const [audioUrl, setAudioUrl] = useState<string>('https://cdn.jsdelivr.net/gh/dcdlove/oss/music/Havnevik-Solow.lkmp3')
+  const [playlist, setPlaylist] = useState<{ singer: string; title: string; ext: string; url: string,url2: string,null?:boolean }[]>([])
   const [searchTerm, setSearchTerm] = useState<string>('')
   const [isShuffle, setIsShuffle] = useState<boolean>(false)
 
@@ -15,7 +15,8 @@ export default function Home() {
     const data = await res.json()
     const list = data.rows.map((n: { singer: string; title: string; ext: string }) => ({
       ...n,
-      url: encodeURIComponent(`https://cdn.jsdelivr.net/gh/dcdlove/past@main/music/${n.singer}-${n.title}${n.ext}`)
+      //url: encodeURIComponent(`https://cdn.jsdelivr.net/gh/dcdlove/past@main/music/${n.singer}-${n.title}${n.ext}`),
+      url: encodeURIComponent(`https://cdn.jsdelivr.net/gh/dcdlove/oss/music/${n.singer}-${n.title}.lk${n.ext.replace('.','')}`)
     }))
     setPlaylist(list)
   }
@@ -60,12 +61,12 @@ export default function Home() {
 
   return (
     <div className="max-w-xl mx-auto p-4 text-gray-800 font-sans">
-      <h1 className="text-xl font-bold mb-3 text-center">🎵 简约音乐播放器</h1>
+      <h1 className="text-xl font-bold mb-3 text-center">🎵音乐播放器</h1>
 
       {currentTrack && (
         <div className="mb-3 text-center">
           <p className="text-sm text-gray-500">正在播放：</p>
-          <p className="text-lg font-semibold text-blue-600 truncate">{currentTrack.singer} - {currentTrack.title}</p>
+          <p className="text-lg font-semibold text-blue-600 truncate">{currentTrack.singer}-{currentTrack.title}</p>
         </div>
       )}
 
@@ -113,7 +114,7 @@ export default function Home() {
               onClick={() => setAudioUrl(decodedUrl)}
               className={`flex items-center gap-2 p-3 cursor-pointer transition ${
                 isPlaying ? 'bg-blue-100 text-blue-800 font-semibold' : 'hover:bg-gray-50'
-              }`}
+              } ${item.null ? 'text-red-400' : ''}`}
             >
               <span className="w-6 text-right text-gray-500">{index + 1}.</span>
               <span>{isPlaying ? '🔊' : '🎵'}</span>
