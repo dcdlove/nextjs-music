@@ -118,7 +118,7 @@ export default function Home() {
   return (
     <div className="max-w-xl mx-auto p-4 text-gray-800 font-sans">
       <h1 className="text-xl font-bold mb-3 text-center">🎵 我的云音乐</h1>
-
+        
       {currentTrack && (
         <div className="mb-3 text-center">
           <p className="text-sm text-gray-500">正在播放：</p>
