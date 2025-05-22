@@ -52,6 +52,10 @@ export async function GET(req: NextRequest) {
             if (value) headers.set(key, value)
         })
 
+        // 强制设置音频类型和下载方式
+        headers.set('Content-Type', 'audio/mpeg')
+        headers.set('Content-Disposition', 'inline; filename="audio.mp3"')
+
         // 🚀 核心：直接转发 ReadableStream 流体，保证 fetch 响应边下边播
         return new Response(upstreamRes.body, {
             status: upstreamRes.status,
