@@ -204,6 +204,7 @@ export default function Home() {
           )
         })}
       </ul>
+       https://ghproxy.link 最新加速地址
     </div>
   )
 }
