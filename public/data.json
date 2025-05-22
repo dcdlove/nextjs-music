@@ -527,8 +527,8 @@
         {
             "singer": "周思涵&Ayo97",
             "title": "感谢你曾来过",
-            "ext": ".flac",
-            "null": false
+            "ext": ".mp3",
+            "null": true
         },
         {
             "singer": "周杰伦",
