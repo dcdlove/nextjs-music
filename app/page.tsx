@@ -13,6 +13,15 @@ export default function Home() {
   // 用来存储进入随机模式时固定的播放顺序
   const [randomList, setRandomList] = useState<typeof playlist>([])
 
+  // 判断当前是否为PC端
+  const isPC = () => {
+    const userAgentInfo = navigator.userAgent
+    const Agents = ['Android', 'iPhone', 'SymbianOS', 'Windows Phone', 'iPad', 'iPod']
+    return !Agents.some(agent => userAgentInfo.includes(agent))
+  }
+
+  const isMobile = !isPC()
+
   useEffect(() => {
     const fetchData = async () => {
       const res = await fetch('./data.json')
@@ -20,7 +29,7 @@ export default function Home() {
       const list = data.rows.map((n: { singer: string; title: string; ext: string }) => ({
         ...n,
         url2: encodeURIComponent(`https://cdn.jsdelivr.net/gh/dcdlove/oss/music/${n.singer}-${n.title}.lk${n.ext.replace('.', '')}`),
-        url:`/api/res2?name=${n.singer}-${n.title}.lk${n.ext.replace('.', '')}`
+        url: isMobile? `/api/res2?name=${n.singer}-${n.title}.lk${n.ext.replace('.', '')}`:encodeURIComponent(`https://cdn.jsdelivr.net/gh/dcdlove/oss/music/${n.singer}-${n.title}.lk${n.ext.replace('.', '')}`),
       }))
       setPlaylist(list)
     }
