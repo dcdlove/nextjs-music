@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react'
 
 export default function Home() {
-  const audioRef = useRef<HTMLVideoElement>(null)
+  const audioRef = useRef<HTMLAudioElement>(null)
 
   const [audioUrl, setAudioUrl] = useState<string>('https://cdn.jsdelivr.net/gh/dcdlove/oss/music/%E4%B8%83%E5%85%AC%E4%B8%BB-%E7%A7%8B%E5%A4%A9%E5%A5%8F%E9%B8%A3%E6%9B%B2.lkmp3')
   const [playlist, setPlaylist] = useState<{ singer: string; title: string; ext: string; url: string; url2?: string; null?: boolean }[]>([])
@@ -19,8 +19,8 @@ export default function Home() {
       const data = await res.json()
       const list = data.rows.map((n: { singer: string; title: string; ext: string }) => ({
         ...n,
-        url: encodeURIComponent(`https://cdn.jsdelivr.net/gh/dcdlove/oss/music/${n.singer}-${n.title}.lk${n.ext.replace('.', '')}`),
-        url2: `/api/res2?name=${n.singer}-${n.title}.lk${n.ext.replace('.', '')}`
+        url2: encodeURIComponent(`https://cdn.jsdelivr.net/gh/dcdlove/oss/music/${n.singer}-${n.title}.lk${n.ext.replace('.', '')}`),
+        url:`/api/res2?name=${n.singer}-${n.title}.lk${n.ext.replace('.', '')}`
       }))
       setPlaylist(list)
     }
@@ -65,7 +65,7 @@ export default function Home() {
       const listToShuffle = [...filteredList]
       for (let i = listToShuffle.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1))
-          ;[listToShuffle[i], listToShuffle[j]] = [listToShuffle[j], listToShuffle[i]]
+        ;[listToShuffle[i], listToShuffle[j]] = [listToShuffle[j], listToShuffle[i]]
       }
       setRandomList(listToShuffle)
     } else {
@@ -119,7 +119,7 @@ export default function Home() {
   return (
     <div className="max-w-xl mx-auto p-4 text-gray-800 font-sans">
       <h1 className="text-xl font-bold mb-3 text-center">🎵 我的云音乐</h1>
-
+        
       {currentTrack && (
         <div className="mb-3 text-center">
           <p className="text-sm text-gray-500">正在播放：</p>
@@ -127,17 +127,15 @@ export default function Home() {
         </div>
       )}
 
-      <video ref={audioRef} src={audioUrl}  controls className="w-full mb-4 h-60px"
-        onEnded={handleEnded} >
-      </video>
+      
 
-      {/* <audio
+      <audio
         ref={audioRef}
         controls
         src={audioUrl}
-        className="w-full mb-4 rounded shadow"
+        className="w-full mb-4 "
         onEnded={handleEnded}
-      /> */}
+      />
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
         <input
@@ -155,10 +153,11 @@ export default function Home() {
           <button
             key={mode}
             onClick={() => setSortMode(mode as typeof sortMode)}
-            className={`px-2 py-1 rounded border ${sortMode === mode
-              ? 'bg-blue-500 text-white border-blue-600'
-              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
-              }`}
+            className={`px-2 py-1 rounded border ${
+              sortMode === mode
+                ? 'bg-blue-500 text-white border-blue-600'
+                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
+            }`}
           >
             {mode === 'default' && '默认'}
             {mode === 'random' && '随机'}
@@ -181,8 +180,9 @@ export default function Home() {
           return (
             <li
               key={decodedUrl}
-              className={`flex items-center justify-between gap-2 p-3 cursor-pointer transition ${isPlaying ? 'bg-blue-100 text-blue-800 font-semibold' : 'hover:bg-gray-50'
-                } ${item.null ? 'text-red-400' : ''}`}
+              className={`flex items-center justify-between gap-2 p-3 cursor-pointer transition ${
+                isPlaying ? 'bg-blue-100 text-blue-800 font-semibold' : 'hover:bg-gray-50'
+              } ${item.null ? 'text-red-400' : ''}`}
             >
               <div
                 onClick={() => setAudioUrl(decodedUrl)}
@@ -206,7 +206,7 @@ export default function Home() {
           )
         })}
       </ul>
-      https://ghproxy.link 最新加速地址
+       https://ghproxy.link 最新加速地址
     </div>
   )
 }
