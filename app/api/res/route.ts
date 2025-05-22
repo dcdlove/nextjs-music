@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
     const name = searchParams.get('name') || ''
     const proxy = searchParams.get('proxy') || 'ghfast.top'
 
-    const rangeHeader = req.headers.get('range') // 获取 Range 头
+    const rangeHeader = req.headers.get('range') || '' // 获取 Range 头
     const url = `https://${proxy}/https://github.com/dcdlove/oss/blob/main/music/${name}`
 
 
