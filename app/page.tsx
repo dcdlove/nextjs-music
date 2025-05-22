@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 export default function Home() {
   const audioRef = useRef<HTMLAudioElement>(null)
 
-  const [audioUrl, setAudioUrl] = useState<string>('https://cdn.jsdelivr.net/gh/dcdlove/oss/music/%E4%B8%83%E5%85%AC%E4%B8%BB-%E7%A7%8B%E5%A4%A9%E5%A5%8F%E9%B8%A3%E6%9B%B2.lkmp3')
+  const [audioUrl, setAudioUrl] = useState<string>('/api/res2?name=%E4%B8%83%E5%85%AC%E4%B8%BB-%E7%A7%8B%E5%A4%A9%E5%A5%8F%E9%B8%A3%E6%9B%B2.lkmp3')
   const [playlist, setPlaylist] = useState<{ singer: string; title: string; ext: string; url: string; url2?: string; null?: boolean }[]>([])
   const [searchTerm, setSearchTerm] = useState<string>('')
   const [sortMode, setSortMode] = useState<'default' | 'random' | 'liked'>('default')
