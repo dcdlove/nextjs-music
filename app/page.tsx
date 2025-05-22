@@ -19,7 +19,8 @@ export default function Home() {
       const data = await res.json()
       const list = data.rows.map((n: { singer: string; title: string; ext: string }) => ({
         ...n,
-        url: encodeURIComponent(`https://cdn.jsdelivr.net/gh/dcdlove/oss/music/${n.singer}-${n.title}.lk${n.ext.replace('.', '')}`)
+        url2: encodeURIComponent(`https://cdn.jsdelivr.net/gh/dcdlove/oss/music/${n.singer}-${n.title}.lk${n.ext.replace('.', '')}`),
+        url:`/api/res2?name=${n.singer}-${n.title}.lk${n.ext.replace('.', '')}`
       }))
       setPlaylist(list)
     }
