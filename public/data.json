@@ -2671,7 +2671,7 @@
             "singer": "黑猫",
             "title": "浪人琵琶",
             "ext": ".mp3",
-            "null": false
+            "null": true
         },
         {
             "singer": "黑猫",
