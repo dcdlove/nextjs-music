@@ -6,7 +6,7 @@ export default function Home() {
 
   const [audioUrl, setAudioUrl] = useState<string>('/api/res2?name=%E4%B8%83%E5%85%AC%E4%B8%BB-%E7%A7%8B%E5%A4%A9%E5%A5%8F%E9%B8%A3%E6%9B%B2.lkmp3')
   const [playlist, setPlaylist] = useState<{ singer: string; title: string; ext: string; url: string; url2?: string; null?: boolean }[]>([])
-  const [searchTerm, setSearchTerm] = useState<string>('')
+  const [searchTerm, setSearchTerm] = useState<string>('小凌')
   const [sortMode, setSortMode] = useState<'default' | 'random' | 'liked'>('default')
   const [likedSongs, setLikedSongs] = useState<Set<string>>(new Set())
 
@@ -20,7 +20,7 @@ export default function Home() {
     return !Agents.some(agent => userAgentInfo.includes(agent))
   }
 
-  const isMobile = !isPC()
+  const isMobile = true //!isPC()
 
   useEffect(() => {
     const fetchData = async () => {
@@ -29,7 +29,7 @@ export default function Home() {
       const list = data.rows.map((n: { singer: string; title: string; ext: string }) => ({
         ...n,
         url2: encodeURIComponent(`https://cdn.jsdelivr.net/gh/dcdlove/oss/music/${n.singer}-${n.title}.lk${n.ext.replace('.', '')}`),
-        url: isMobile? `/api/res2?name=${n.singer}-${n.title}.lk${n.ext.replace('.', '')}`:encodeURIComponent(`https://cdn.jsdelivr.net/gh/dcdlove/oss/music/${n.singer}-${n.title}.lk${n.ext.replace('.', '')}`),
+        url: isMobile? `/api/res2?name=${encodeURIComponent(encodeURIComponent(n.singer))}-${encodeURIComponent(encodeURIComponent(n.title))}.lk${n.ext.replace('.', '')}`:encodeURIComponent(`https://cdn.jsdelivr.net/gh/dcdlove/oss/music/${n.singer}-${n.title}.lk${n.ext.replace('.', '')}`),
       }))
       setPlaylist(list)
     }
@@ -183,6 +183,7 @@ export default function Home() {
       <ul className="bg-white rounded shadow divide-y max-h-[500px] overflow-y-auto">
         {sortedList.map((item, index) => {
           const decodedUrl = decodeURIComponent(item.url)
+          
           const isPlaying = decodedUrl === audioUrl
           const isLiked = likedSongs.has(decodedUrl)
 
