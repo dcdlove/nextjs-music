@@ -2317,6 +2317,36 @@
             "title": "芒种",
             "ext": ".mp3",
             "null": false
+        },
+        {
+            "singer": "小凌&玄觞&纱朵",
+            "title": "陪你到世界尽头",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "小凌",
+            "title": "you",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "小凌",
+            "title": "长安城记",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "小凌",
+            "title": "魂",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "小凌",
+            "title": "안녕",
+            "ext": ".mp3",
+            "null": false
         }
     ],
     "total": 294
