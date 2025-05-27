@@ -20,7 +20,7 @@ export default function Home() {
     return !Agents.some(agent => userAgentInfo.includes(agent))
   }
 
-  const isMobile = true //!isPC()
+  const isMobile = !isPC()
 
   useEffect(() => {
     const fetchData = async () => {
