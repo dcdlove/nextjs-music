@@ -1554,7 +1554,7 @@
             "singer": "葛雨晴",
             "title": "万有引力",
             "ext": ".mp3",
-            "null": true
+            "null": false
         },
         {
             "singer": "葛雨晴",
@@ -2582,12 +2582,7 @@
             "ext": ".mp3",
             "null": false
         },
-        {
-            "singer": "葛雨晴",
-            "title": "万有引力",
-            "ext": ".mp3",
-            "null": false
-        },
+        
         {
             "singer": "蒋蒋&莫小娘",
             "title": "盼了秋来",
