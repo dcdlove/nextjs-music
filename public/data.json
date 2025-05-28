@@ -528,7 +528,7 @@
             "singer": "周思涵&Ayo97",
             "title": "感谢你曾来过",
             "ext": ".mp3",
-            "null": true
+            "null": false
         },
         {
             "singer": "周杰伦",
@@ -993,6 +993,36 @@
             "null": false
         },
         {
+            "singer": "徐良&小凌",
+            "title": "友情出演",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "小凌&Takua",
+            "title": "星空站台",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "小凌",
+            "title": "南郭先生",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "小凌",
+            "title": "影子习惯",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "小凌",
+            "title": "恋爱哆啦咪",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
             "singer": "小凌",
             "title": "坏男孩",
             "ext": ".mp3",
@@ -1065,6 +1095,18 @@
             "null": false
         },
         {
+            "singer": "小凌",
+            "title": "因为",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "小凌",
+            "title": "舍子花",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
             "singer": "小凌&玄觞&纱朵",
             "title": "陪你到世界尽头",
             "ext": ".mp3",
@@ -1127,6 +1169,12 @@
         {
             "singer": "徐良",
             "title": "电话里的秘密",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "徐良&庄雨洁",
+            "title": "考试什么的都去死吧",
             "ext": ".mp3",
             "null": false
         },
@@ -2169,18 +2217,6 @@
             "null": false
         },
         {
-            "singer": "小凌",
-            "title": "因为",
-            "ext": ".mp3",
-            "null": false
-        },
-        {
-            "singer": "小凌",
-            "title": "舍子花",
-            "ext": ".mp3",
-            "null": false
-        },
-        {
             "singer": "小顶顶",
             "title": "倒数",
             "ext": ".mp3",
@@ -2663,6 +2699,18 @@
         {
             "singer": "黑猫",
             "title": "甜了个蜜",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "阿涵",
+            "title": "不想",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "本兮&单色凌",
+            "title": "变成回忆",
             "ext": ".mp3",
             "null": false
         }
