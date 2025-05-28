@@ -1006,6 +1006,36 @@
         },
         {
             "singer": "小凌",
+            "title": "不死之身",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "小凌",
+            "title": "魂",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "小凌",
+            "title": "you",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "小凌",
+            "title": "叫我女王",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "小凌",
+            "title": "最后的天堂",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "小凌",
             "title": "南郭先生",
             "ext": ".mp3",
             "null": false
@@ -1036,25 +1066,19 @@
         },
         {
             "singer": "小凌",
-            "title": "魂",
+            "title": "恋爱达人",
             "ext": ".mp3",
             "null": false
         },
         {
             "singer": "小凌",
-            "title": "you",
+            "title": "老女孩",
             "ext": ".mp3",
             "null": false
         },
         {
             "singer": "小凌",
-            "title": "叫我女王",
-            "ext": ".mp3",
-            "null": false
-        },
-        {
-            "singer": "小凌",
-            "title": "最后的天堂",
+            "title": "身骑白马",
             "ext": ".mp3",
             "null": false
         },
