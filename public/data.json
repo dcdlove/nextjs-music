@@ -1012,6 +1012,30 @@
         },
         {
             "singer": "小凌",
+            "title": "TikTok",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "小凌",
+            "title": "TouchMyBody",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "小凌",
+            "title": "前尘醉",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "小凌",
+            "title": "有何不可",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "小凌",
             "title": "魂",
             "ext": ".mp3",
             "null": false
