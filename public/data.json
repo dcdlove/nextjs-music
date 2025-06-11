@@ -2493,12 +2493,6 @@
             "null": false
         },
         {
-            "singer": "Fine乐团",
-            "title": "呼吸决定",
-            "ext": ".mp3",
-            "null": false
-        },
-        {
             "singer": "KingStar",
             "title": "朱丽叶的秋天",
             "ext": ".mp3",
@@ -2891,6 +2885,48 @@
         {
             "singer": "王贰浪",
             "title": "恋曲2018",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "阿悄",
+            "title": "不字书",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "阿悄",
+            "title": "世界上另外的自己",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "阿悄",
+            "title": "任性爱",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "阿悄",
+            "title": "像影子的人",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "阿悄",
+            "title": "共度",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "阿悄",
+            "title": "性别不明",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "阿悄",
+            "title": "没有人",
             "ext": ".mp3",
             "null": false
         }
