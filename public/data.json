@@ -2929,6 +2929,42 @@
             "title": "没有人",
             "ext": ".mp3",
             "null": false
+        },
+        {
+            "singer": "Britneylee小暖",
+            "title": "星辰有你",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "阿悄",
+            "title": "亲爱的理由",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "阿悄",
+            "title": "爱与妒忌",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "阿悄",
+            "title": "红纱帐",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "阿悄",
+            "title": "而立问",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "阿悄",
+            "title": "雨停曲",
+            "ext": ".mp3",
+            "null": false
         }
     ],
     "total": 294
