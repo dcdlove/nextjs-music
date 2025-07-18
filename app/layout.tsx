@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "我的云音乐 - Serendipity不期而遇的惊喜",
+  title: "Serendipity 不期而遇的惊喜",
   description: "与美好的事物不期而遇，意外发现人间珍宝是你",
 };
 
