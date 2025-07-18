@@ -2995,6 +2995,30 @@
             "title": "蝴蝶",
             "ext": ".mp3",
             "null": false
+        },
+        {
+            "singer": "葛雨晴",
+            "title": "爱很简单_荔枝FM",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "葛雨晴",
+            "title": "爱的就是你_荔枝FM",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "葛雨晴",
+            "title": "爱的魔法_荔枝FM",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "葛雨晴",
+            "title": "非酋_荔枝FM",
+            "ext": ".mp3",
+            "null": false
         }
     ],
     "total": 294
