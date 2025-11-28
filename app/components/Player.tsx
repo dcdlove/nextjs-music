@@ -46,7 +46,7 @@ export default function Player({
         if (!audioRef.current) return;
 
         const initAudioContext = () => {
-            if (!audioContextRef.current) {
+            if (!audioContextRef.current && audioRef.current) {
                 try {
                     const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
                     audioContextRef.current = new AudioContext();
