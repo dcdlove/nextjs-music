@@ -55,17 +55,19 @@ export default function Home() {
   }, [])
 
   // Toggle Like
-  const toggleLike = (url: string) => {
+  const toggleLike = useCallback((url: string) => {
     const decodedUrl = decodeURIComponent(url)
-    const updated = new Set(likedSongs)
-    if (updated.has(decodedUrl)) {
-      updated.delete(decodedUrl)
-    } else {
-      updated.add(decodedUrl)
-    }
-    setLikedSongs(updated)
-    localStorage.setItem('likedSongs', JSON.stringify(Array.from(updated)))
-  }
+    setLikedSongs(prev => {
+      const updated = new Set(prev)
+      if (updated.has(decodedUrl)) {
+        updated.delete(decodedUrl)
+      } else {
+        updated.add(decodedUrl)
+      }
+      localStorage.setItem('likedSongs', JSON.stringify(Array.from(updated)))
+      return updated
+    })
+  }, [])
 
   // Filtered List
   const filteredList = useMemo(() => {
@@ -105,21 +107,20 @@ export default function Home() {
   }, [sortMode, filteredList, randomList, likedSongs])
 
   // Navigation Logic
-  const playTrack = (url: string) => {
+  const playTrack = useCallback((url: string) => {
     setAudioUrl(url)
     setIsPlaying(true)
-  }
+  }, [])
 
   const handleNext = useCallback(() => {
     if (playlist.length === 0) return
     const currentList = sortMode === 'random' ? randomList : playlist
-    // If random list is empty (e.g. search filtered everything out), fallback to playlist
     const listToUse = currentList.length > 0 ? currentList : playlist
 
     const currentIndex = listToUse.findIndex(item => decodeURIComponent(item.url) === audioUrl)
     const nextIndex = (currentIndex + 1) % listToUse.length
     playTrack(decodeURIComponent(listToUse[nextIndex].url))
-  }, [playlist, randomList, sortMode, audioUrl])
+  }, [playlist, randomList, sortMode, audioUrl, playTrack])
 
   const handlePrev = useCallback(() => {
     if (playlist.length === 0) return
@@ -129,7 +130,7 @@ export default function Home() {
     const currentIndex = listToUse.findIndex(item => decodeURIComponent(item.url) === audioUrl)
     const prevIndex = (currentIndex - 1 + listToUse.length) % listToUse.length
     playTrack(decodeURIComponent(listToUse[prevIndex].url))
-  }, [playlist, randomList, sortMode, audioUrl])
+  }, [playlist, randomList, sortMode, audioUrl, playTrack])
 
   const currentTrack = playlist.find(item => decodeURIComponent(item.url) === audioUrl)
 
@@ -153,15 +154,15 @@ export default function Home() {
 
       {/* Playlist Drawer */}
       <div
-        className={`fixed inset-y-0 right-0 w-full sm:w-[400px] bg-[#0f172a]/95 backdrop-blur-xl border-l border-white/10 shadow-2xl z-40 transform transition-transform duration-300 ease-in-out ${isPlaylistOpen ? 'translate-x-0' : 'translate-x-full'
+        className={`fixed inset-y-0 right-0 w-full sm:w-[400px] bg-[#0f172a]/95 backdrop-blur-xl border-l border-white/10 shadow-2xl z-40 transform transition-all duration-500 ease-out ${isPlaylistOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
           }`}
       >
-        <div className="h-full flex flex-col p-6 overflow-hidden">
+        <div className="h-full flex flex-col p-6 overflow-hidden animate-[fadeIn_0.4s_ease-out_0.2s_both]">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold text-white">播放列表</h2>
             <button
               onClick={() => setIsPlaylistOpen(false)}
-              className="p-2 text-white/60 hover:text-white rounded-full hover:bg-white/10 transition-colors"
+              className="p-2 text-white/60 hover:text-white rounded-full hover:bg-white/10 transition-colors active:scale-90"
             >
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -191,7 +192,7 @@ export default function Home() {
       {/* Backdrop for mobile */}
       {isPlaylistOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-30 backdrop-blur-sm transition-opacity sm:hidden"
+          className="fixed inset-0 bg-black/50 z-30 backdrop-blur-sm transition-opacity sm:hidden animate-[fadeIn_0.3s_ease-out]"
           onClick={() => setIsPlaylistOpen(false)}
         />
       )}

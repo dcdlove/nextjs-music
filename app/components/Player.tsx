@@ -162,12 +162,12 @@ export default function Player({
     };
 
     return (
-        <div className="mb-8 relative z-20">
+        <div className="mb-8 relative z-20 animate-[fadeIn_0.6s_ease-out]">
             {/* Render DynamicBackground here to share audioDataRef */}
             <DynamicBackground isPlaying={isPlaying} audioDataRef={audioDataRef} />
 
             {/* Main Card */}
-            <div className="group relative bg-slate-900/40 backdrop-blur-3xl rounded-[3rem] p-8 sm:p-12 shadow-2xl border border-white/10 transition-all duration-500 hover:shadow-cyan-500/20 hover:border-white/20">
+            <div className="group relative bg-slate-900/40 backdrop-blur-3xl rounded-[3rem] p-8 sm:p-12 shadow-2xl border border-white/10 transition-all duration-500 hover:shadow-cyan-500/20 hover:border-white/20 gpu-accelerated">
 
                 {/* Glossy Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent opacity-50 pointer-events-none rounded-[3rem]" />
@@ -241,14 +241,16 @@ export default function Player({
 
                         <button
                             onClick={() => setIsPlaying(!isPlaying)}
-                            className="relative w-20 h-20 flex items-center justify-center rounded-full bg-white text-slate-900 shadow-[0_0_40px_rgba(34,211,238,0.3)] hover:shadow-[0_0_60px_rgba(34,211,238,0.5)] hover:scale-105 active:scale-95 transition-all duration-300 group/play"
+                            className="relative w-20 h-20 flex items-center justify-center rounded-full bg-white text-slate-900 shadow-[0_0_40px_rgba(34,211,238,0.3)] hover:shadow-[0_0_60px_rgba(34,211,238,0.5)] hover:scale-110 active:scale-95 transition-all duration-300 group/play animate-glow"
                         >
                             <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-cyan-300 to-blue-400 opacity-20 blur-lg group-hover/play:opacity-40 transition-opacity" />
-                            {isPlaying ? (
-                                <svg className="w-8 h-8 fill-current" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" /></svg>
-                            ) : (
-                                <svg className="w-8 h-8 fill-current ml-1" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
-                            )}
+                            <div className={`transition-transform duration-300 ${isPlaying ? 'scale-100' : 'scale-110'}`}>
+                                {isPlaying ? (
+                                    <svg className="w-8 h-8 fill-current" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" /></svg>
+                                ) : (
+                                    <svg className="w-8 h-8 fill-current ml-1" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                                )}
+                            </div>
                         </button>
 
                         <button
