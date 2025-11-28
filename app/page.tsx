@@ -97,11 +97,8 @@ export default function Home() {
 
     let list = [...filteredList]
     if (sortMode === 'liked') {
-      list.sort((a, b) => {
-        const aLiked = likedSongs.has(decodeURIComponent(a.url)) ? -1 : 1
-        const bLiked = likedSongs.has(decodeURIComponent(b.url)) ? -1 : 1
-        return aLiked - bLiked
-      })
+      // Filter to only show liked songs
+      list = list.filter(song => likedSongs.has(decodeURIComponent(song.url)))
     }
     return list
   }, [sortMode, filteredList, randomList, likedSongs])

@@ -3,6 +3,8 @@ import { Song } from '../types';
 import ProgressBar from './ProgressBar';
 import DynamicBackground from './DynamicBackground';
 import CircularVisualizer from './CircularVisualizer';
+import Vinyl3D from './Vinyl3D';
+import { useThemeColor } from '../hooks/useThemeColor';
 
 interface PlayerProps {
     currentTrack?: Song;
@@ -31,6 +33,9 @@ export default function Player({
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [volume, setVolume] = useState(0.8);
+
+    // Generate theme color based on current track
+    const themeColor = useThemeColor(currentTrack ? `${currentTrack.singer}-${currentTrack.title}` : 'default');
 
     // Audio Analysis Refs
     const audioContextRef = useRef<AudioContext | null>(null);
@@ -164,21 +169,37 @@ export default function Player({
     return (
         <div className="mb-8 relative z-20 animate-[fadeIn_0.6s_ease-out]">
             {/* Render DynamicBackground here to share audioDataRef */}
-            <DynamicBackground isPlaying={isPlaying} audioDataRef={audioDataRef} />
+            <DynamicBackground
+                isPlaying={isPlaying}
+                audioDataRef={audioDataRef}
+                vinylPosition={{ x: 50, y: 25 }} // Approximate center-top position
+            />
 
-            {/* Main Card */}
-            <div className="group relative bg-slate-900/40 backdrop-blur-3xl rounded-[3rem] p-8 sm:p-12 shadow-2xl border border-white/10 transition-all duration-500 hover:shadow-cyan-500/20 hover:border-white/20 gpu-accelerated">
+            {/* Main Card with Dynamic Theme */}
+            <div
+                className="group relative bg-slate-900/40 backdrop-blur-3xl rounded-[3rem] p-8 sm:p-12 shadow-2xl border transition-all duration-500 gpu-accelerated"
+                style={{
+                    borderColor: `rgba(${themeColor.primaryRgb}, 0.2)`,
+                    boxShadow: isPlaying ? themeColor.glow : '0 0 40px rgba(0,0,0,0.3)',
+                }}
+            >
 
                 {/* Glossy Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent opacity-50 pointer-events-none rounded-[3rem]" />
 
-                {/* Ambient Background Glow */}
-                <div className="absolute -top-32 -right-32 w-80 h-80 bg-blue-500/30 rounded-full blur-[100px] pointer-events-none animate-pulse-slow" />
-                <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-cyan-500/20 rounded-full blur-[100px] pointer-events-none animate-pulse-slow delay-1000" />
+                {/* Ambient Background Glow with Theme Color */}
+                <div
+                    className="absolute -top-32 -right-32 w-80 h-80 rounded-full blur-[100px] pointer-events-none animate-pulse-slow transition-colors duration-1000"
+                    style={{ backgroundColor: `rgba(${themeColor.primaryRgb}, 0.3)` }}
+                />
+                <div
+                    className="absolute -bottom-32 -left-32 w-80 h-80 rounded-full blur-[100px] pointer-events-none animate-pulse-slow delay-1000 transition-colors duration-1000"
+                    style={{ backgroundColor: `rgba(${themeColor.primaryRgb}, 0.2)` }}
+                />
 
                 <div className="relative z-10 flex flex-col items-center">
 
-                    {/* Album Art / Visualizer Area */}
+                    {/* Album Art / Visualizer Area with 3D Vinyl */}
                     <div className="relative w-56 h-56 sm:w-64 sm:h-64 mb-10 transition-transform duration-700 ease-out">
 
                         {/* Circular Visualizer */}
@@ -188,25 +209,27 @@ export default function Player({
                             radius={140} // Adjust based on container size
                         />
 
-                        {/* Rotating Border */}
-                        <div className={`absolute inset-0 rounded-full border border-white/10 transition-transform duration-[20s] linear ${isPlaying ? 'animate-[spin_20s_linear_infinite]' : ''}`}>
-                            <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-cyan-400 rounded-full shadow-[0_0_10px_rgba(34,211,238,0.8)]" />
+                        {/* Rotating Border with Theme Color */}
+                        <div className={`absolute inset-0 rounded-full border transition-all duration-[20s] linear ${isPlaying ? 'animate-[spin_20s_linear_infinite]' : ''}`}
+                            style={{ borderColor: `rgba(${themeColor.primaryRgb}, 0.3)` }}
+                        >
+                            <div
+                                className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full shadow-lg transition-colors duration-1000"
+                                style={{
+                                    backgroundColor: themeColor.primary,
+                                    boxShadow: `0 0 10px ${themeColor.primary}`
+                                }}
+                            />
                         </div>
 
                         {/* Outer Glow Ring */}
-                        <div className={`absolute inset-2 rounded-full border border-white/5 ${isPlaying ? 'animate-pulse' : ''}`} />
+                        <div className={`absolute inset-2 rounded-full border transition-colors duration-1000 ${isPlaying ? 'animate-pulse' : ''}`}
+                            style={{ borderColor: `rgba(${themeColor.primaryRgb}, 0.1)` }}
+                        />
 
-                        {/* Central Disc */}
-                        <div className={`absolute inset-4 rounded-full bg-gradient-to-tr from-slate-950 to-slate-800 shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-center justify-center overflow-hidden ${isPlaying ? 'animate-[spin_10s_linear_infinite]' : ''} transition-transform duration-700`}>
-                            {/* Vinyl Texture */}
-                            <div className="absolute inset-0 bg-[repeating-radial-gradient(#111_0,#111_2px,#222_3px)] opacity-20" />
-                            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent rotate-45" />
-
-                            {/* Center Label */}
-                            <div className="w-20 h-20 rounded-full bg-slate-900 border-4 border-slate-800 flex items-center justify-center relative shadow-inner">
-                                <div className={`w-full h-full absolute inset-0 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 rounded-full ${isPlaying ? 'animate-spin' : ''}`} style={{ animationDuration: '3s' }} />
-                                <div className="w-3 h-3 rounded-full bg-cyan-400 shadow-[0_0_15px_rgba(34,211,238,1)] z-10" />
-                            </div>
+                        {/* 3D Vinyl Record */}
+                        <div className="absolute inset-4">
+                            <Vinyl3D isPlaying={isPlaying} themeColor={themeColor} />
                         </div>
                     </div>
 
@@ -215,11 +238,13 @@ export default function Player({
                         <h2 className="text-3xl sm:text-4xl font-black text-white truncate tracking-tight drop-shadow-xl bg-clip-text text-transparent bg-gradient-to-b from-white to-white/70">
                             {currentTrack ? currentTrack.title : 'Select a Song'}
                         </h2>
-                        <p className="text-cyan-200/60 font-medium text-lg tracking-widest uppercase">
+                        <p
+                            className="font-medium text-lg tracking-widest uppercase transition-colors duration-1000"
+                            style={{ color: `rgba(${themeColor.primaryRgb}, 0.8)` }}
+                        >
                             {currentTrack ? currentTrack.singer : '...'}
                         </p>
                     </div>
-
 
                     {/* Progress Bar */}
                     <div className="w-full mb-10 px-2">
@@ -241,9 +266,17 @@ export default function Player({
 
                         <button
                             onClick={() => setIsPlaying(!isPlaying)}
-                            className="relative w-20 h-20 flex items-center justify-center rounded-full bg-white text-slate-900 shadow-[0_0_40px_rgba(34,211,238,0.3)] hover:shadow-[0_0_60px_rgba(34,211,238,0.5)] hover:scale-110 active:scale-95 transition-all duration-300 group/play animate-glow"
+                            className="relative w-20 h-20 flex items-center justify-center rounded-full text-slate-900 transition-all duration-300 group/play active:scale-95"
+                            style={{
+                                background: themeColor.gradient,
+                                boxShadow: isPlaying ? themeColor.glowStrong : themeColor.glow,
+                                transform: isPlaying ? 'scale(1.1)' : 'scale(1)',
+                            }}
                         >
-                            <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-cyan-300 to-blue-400 opacity-20 blur-lg group-hover/play:opacity-40 transition-opacity" />
+                            <div
+                                className="absolute inset-0 rounded-full opacity-20 blur-lg group-hover/play:opacity-40 transition-opacity"
+                                style={{ background: themeColor.primary }}
+                            />
                             <div className={`transition-transform duration-300 ${isPlaying ? 'scale-100' : 'scale-110'}`}>
                                 {isPlaying ? (
                                     <svg className="w-8 h-8 fill-current" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" /></svg>
