@@ -193,7 +193,16 @@ export default function Player({
                     {/* 2. 唱片主体结构 */}
                     <div className="relative w-[320px] h-[320px] sm:w-[420px] sm:h-[420px] flex items-center justify-center">
 
-                        {/* A. 外层进度光环 (激光质感) */}
+                        {/* A. 外层可视化光环 (在进度条外围) */}
+                        <div className="absolute inset-[-300px]  z-0 opacity-10">
+                            <CircularVisualizer
+                                analyser={analyserNode}
+                                isPlaying={isPlaying}
+                                radius={window.innerWidth < 640 ? 180 : 235}
+                            />
+                        </div>
+
+                        {/* B. 进度光环 (激光质感) */}
                         <div className="absolute inset-[-10px] z-10">
                             <CircularProgress
                                 radius={window.innerWidth < 640 ? 170 : 220}
@@ -204,7 +213,7 @@ export default function Player({
                             />
                         </div>
 
-                        {/* B. 黑胶唱片 (玻璃态 + 纹理) */}
+                        {/* C. 黑胶唱片 (玻璃态 + 纹理) */}
                         <div
                             className="absolute inset-0 rounded-full overflow-hidden shadow-2xl border border-white/10 backdrop-blur-md"
                             style={{
@@ -242,17 +251,8 @@ export default function Player({
                                 className={`absolute inset-[18%] rounded-full transition-transform duration-[20s] linear ${isPlaying ? 'animate-[spin_20s_linear_infinite]' : ''}`}
                                 style={{ animationPlayState: isPlaying ? 'running' : 'paused' }}
                             >
-                                {/* 可视化器背景 */}
-                                <div className="absolute inset-[-15%] opacity-80 mix-blend-screen">
-                                    <CircularVisualizer
-                                        analyser={analyserNode}
-                                        isPlaying={isPlaying}
-                                        radius={window.innerWidth < 640 ? 100 : 130}
-                                    />
-                                </div>
-
                                 {/* 专辑封面 */}
-                                <div className="absolute inset-[15%] rounded-full overflow-hidden shadow-[0_0_20px_rgba(0,0,0,0.8)] border-2 border-white/10">
+                                <div className="absolute inset-0 rounded-full overflow-hidden shadow-[0_0_20px_rgba(0,0,0,0.8)] border-2 border-white/10">
                                     <div
                                         className="w-full h-full bg-cover bg-center transition-transform duration-700 hover:scale-110"
                                         style={{
@@ -266,7 +266,7 @@ export default function Player({
                             </div>
                         </div>
 
-                        {/* C. 交互覆盖层 (悬停显示控制) */}
+                        {/* D. 交互覆盖层 (悬停显示控制) */}
                         <div className="absolute inset-0 flex items-center justify-center z-30 transition-all duration-500 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-hover:backdrop-blur-[2px]">
                             <div className="flex items-center gap-6 sm:gap-10 transform scale-100 sm:scale-90 sm:group-hover:scale-100 transition-transform duration-300">
                                 {/* 上一曲 */}
