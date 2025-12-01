@@ -157,154 +157,199 @@ export default function Player({
         }
     };
 
-    const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const newVolume = parseFloat(e.target.value);
-        setVolume(newVolume);
-        if (audioRef.current) {
-            audioRef.current.volume = newVolume;
-        }
-    };
-
     // 计算圆形进度条的进度
     const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
     return (
-        <div className="relative z-20 flex flex-col items-center justify-center min-h-[60vh] animate-[fadeIn_0.6s_ease-out]">
+        <>
             {/* 在此渲染 DynamicBackground 以共享 audioDataRef */}
+            {/* 必须放在 perspective 容器外部，否则 fixed 定位会失效 */}
             <DynamicBackground
                 isPlaying={isPlaying}
                 audioDataRef={audioDataRef}
-                vinylPosition={{ x: 50, y: 50 }} // 屏幕中心
+                vinylPosition={{ x: 50, y: 45 }} // 稍微向上调整以适应下方信息
                 themeColor={themeColor}
             />
 
-            {/* 大唱片播放器容器 */}
-            <div className="relative w-[340px] h-[340px] sm:w-[450px] sm:h-[450px] flex items-center justify-center">
-
-                {/* 1. 外层进度环 */}
-                <div className="absolute inset-[-20px] sm:inset-[-30px] z-0">
-                    <CircularProgress
-                        radius={window.innerWidth < 640 ? 190 : 255}
-                        stroke={6}
-                        progress={progress}
-                        color={themeColor.primary}
-                        onChange={(val) => handleSeek((val / 100) * duration)}
-                    />
-                </div>
-
-                {/* 2. 主黑胶唱片主体 */}
+            <div className="relative z-20 flex flex-col items-center justify-center min-h-[70vh] w-full perspective-[1000px]">
+                {/* 悬浮的唱片容器 */}
                 <div
-                    className="absolute inset-0 rounded-full shadow-2xl overflow-hidden transition-all duration-700"
+                    className="relative group animate-[pulse-slow_6s_ease-in-out_infinite]"
                     style={{
-                        background: `radial-gradient(circle at 30% 30%, #2a2a2a, #000)`,
-                        boxShadow: `0 0 50px ${themeColor.glowStrong}`,
-                        transform: isPlaying ? 'scale(1)' : 'scale(0.95)',
+                        transformStyle: 'preserve-3d',
+                        animationPlayState: isPlaying ? 'running' : 'paused'
                     }}
                 >
-                    {/* 黑胶纹理 */}
-                    <div className="absolute inset-0 opacity-30 bg-[repeating-radial-gradient(#111_0,#111_2px,#222_3px)]" />
-
-                    {/* 旋转部分 (专辑封面 + 可视化器) */}
+                    {/* 1. 动态光晕背景 (随低音律动) */}
                     <div
-                        className={`absolute inset-[15%] rounded-full transition-transform duration-[20s] linear ${isPlaying ? 'animate-[spin_20s_linear_infinite]' : ''}`}
-                        style={{ animationPlayState: isPlaying ? 'running' : 'paused' }}
-                    >
-                        {/* 圆形可视化器背景 */}
-                        <div className="absolute inset-[-10%] opacity-60 mix-blend-screen">
-                            <CircularVisualizer
-                                analyser={analyserNode}
-                                isPlaying={isPlaying}
-                                radius={120}
+                        className="absolute inset-0 rounded-full blur-[60px] transition-all duration-200"
+                        style={{
+                            background: themeColor.gradient,
+                            opacity: isPlaying ? 0.4 : 0.1,
+                            transform: isPlaying ? 'scale(1.1)' : 'scale(0.9)',
+                        }}
+                    />
+
+                    {/* 2. 唱片主体结构 */}
+                    <div className="relative w-[320px] h-[320px] sm:w-[420px] sm:h-[420px] flex items-center justify-center">
+
+                        {/* A. 外层进度光环 (激光质感) */}
+                        <div className="absolute inset-[-10px] z-10">
+                            <CircularProgress
+                                radius={window.innerWidth < 640 ? 170 : 220}
+                                stroke={4}
+                                progress={progress}
+                                color={themeColor.primary}
+                                onChange={(val) => handleSeek((val / 100) * duration)}
                             />
                         </div>
 
-                        {/* 专辑封面 / 中心标签 */}
-                        <div className="absolute inset-[15%] rounded-full overflow-hidden border-4 border-slate-900 shadow-2xl">
-                            {/* 专辑封面占位符 - 使用基于主题的渐变 */}
+                        {/* B. 黑胶唱片 (玻璃态 + 纹理) */}
+                        <div
+                            className="absolute inset-0 rounded-full overflow-hidden shadow-2xl border border-white/10 backdrop-blur-md"
+                            style={{
+                                background: `radial-gradient(circle at 30% 30%, rgba(20,20,20,0.95), rgba(0,0,0,1))`,
+                                boxShadow: `
+                                    0 0 0 1px rgba(255,255,255,0.05),
+                                    0 20px 50px -10px rgba(0,0,0,0.5),
+                                    inset 0 0 60px rgba(0,0,0,0.8)
+                                `
+                            }}
+                        >
+                            {/* 纹理层 */}
                             <div
-                                className="w-full h-full"
-                                style={{ background: themeColor.gradient }}
-                            />
-                            {/* 内部孔洞 */}
-                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-black rounded-full border border-white/20" />
-                        </div>
-                    </div>
-
-                    {/* 3. 集成控制和信息覆盖 */}
-                    {/* 控制的玻璃覆盖层 */}
-                    <div className="absolute inset-0 flex flex-col items-center justify-between py-12 pointer-events-none">
-
-                        {/* 顶部: 歌曲信息 */}
-                        <div className="text-center space-y-1 z-20 pointer-events-auto transition-opacity duration-300 hover:opacity-100 opacity-80">
-                            <h2
-                                className="text-2xl sm:text-3xl font-black text-white truncate max-w-[200px] sm:max-w-[280px] drop-shadow-md"
-                                style={{ color: themeColor.primary }}
-                            >
-                                {currentTrack ? currentTrack.title : '选择歌曲'}
-                            </h2>
-                            <p
-                                className="text-sm font-bold tracking-widest uppercase"
-                                style={{ color: themeColor.analogous1 }}
-                            >
-                                {currentTrack ? currentTrack.singer : '...'}
-                            </p>
-                        </div>
-
-                        {/* 底部: 控制 */}
-                        <div className="flex items-center gap-8 z-20 pointer-events-auto mb-0">
-                            <button
-                                onClick={onPrev}
-                                className="p-3 rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-all active:scale-95"
-                            >
-                                <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" /></svg>
-                            </button>
-
-                            <button
-                                onClick={() => setIsPlaying(!isPlaying)}
-                                className="w-16 h-16 flex items-center justify-center rounded-full bg-white text-slate-900 shadow-lg hover:scale-110 active:scale-95 transition-all duration-300"
+                                className="absolute inset-0 opacity-40 mix-blend-overlay"
                                 style={{
-                                    boxShadow: `0 0 30px ${themeColor.primary}`,
-                                    color: themeColor.primary
+                                    background: `repeating-radial-gradient(
+                                        #333 0, 
+                                        #333 1px, 
+                                        transparent 2px, 
+                                        transparent 4px
+                                    )`
                                 }}
-                            >
-                                {isPlaying ? (
-                                    <svg className="w-8 h-8 fill-current" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" /></svg>
-                                ) : (
-                                    <svg className="w-8 h-8 fill-current ml-1" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
-                                )}
-                            </button>
+                            />
 
-                            <button
-                                onClick={onNext}
-                                className="p-3 rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-all active:scale-95"
+                            {/* 动态流光层 (模拟反光) */}
+                            <div
+                                className="absolute inset-[-50%] opacity-20 bg-gradient-to-tr from-transparent via-white to-transparent rotate-45 pointer-events-none"
+                                style={{
+                                    animation: isPlaying ? 'vinyl-shine 8s linear infinite' : 'none'
+                                }}
+                            />
+
+                            {/* 旋转的核心部分 */}
+                            <div
+                                className={`absolute inset-[18%] rounded-full transition-transform duration-[20s] linear ${isPlaying ? 'animate-[spin_20s_linear_infinite]' : ''}`}
+                                style={{ animationPlayState: isPlaying ? 'running' : 'paused' }}
                             >
-                                <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" /></svg>
-                            </button>
+                                {/* 可视化器背景 */}
+                                <div className="absolute inset-[-15%] opacity-80 mix-blend-screen">
+                                    <CircularVisualizer
+                                        analyser={analyserNode}
+                                        isPlaying={isPlaying}
+                                        radius={window.innerWidth < 640 ? 100 : 130}
+                                    />
+                                </div>
+
+                                {/* 专辑封面 */}
+                                <div className="absolute inset-[15%] rounded-full overflow-hidden shadow-[0_0_20px_rgba(0,0,0,0.8)] border-2 border-white/10">
+                                    <div
+                                        className="w-full h-full bg-cover bg-center transition-transform duration-700 hover:scale-110"
+                                        style={{
+                                            background: themeColor.gradient,
+                                            // 如果有真实封面图，这里应该是 backgroundImage: `url(${currentTrack.cover})`
+                                        }}
+                                    />
+                                    {/* 中心孔 */}
+                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-black rounded-full border border-white/20 shadow-inner" />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* C. 交互覆盖层 (悬停显示控制) */}
+                        <div className="absolute inset-0 flex items-center justify-center z-30 transition-all duration-500 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-hover:backdrop-blur-[2px]">
+                            <div className="flex items-center gap-6 sm:gap-10 transform scale-100 sm:scale-90 sm:group-hover:scale-100 transition-transform duration-300">
+                                {/* 上一曲 */}
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); onPrev(); }}
+                                    className="p-4 rounded-full text-white/80 hover:text-white hover:bg-white/10 backdrop-blur-md transition-all active:scale-90"
+                                >
+                                    <svg className="w-8 h-8 sm:w-10 sm:h-10 drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" /></svg>
+                                </button>
+
+                                {/* 播放/暂停 (巨大图标) */}
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); setIsPlaying(!isPlaying); }}
+                                    className="w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 text-white shadow-[0_0_30px_rgba(255,255,255,0.2)] transition-all duration-300 hover:scale-110 active:scale-95"
+                                >
+                                    {isPlaying ? (
+                                        <svg className="w-10 h-10 sm:w-12 sm:h-12 fill-current drop-shadow-lg" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" /></svg>
+                                    ) : (
+                                        <svg className="w-10 h-10 sm:w-12 sm:h-12 fill-current ml-2 drop-shadow-lg" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                                    )}
+                                </button>
+
+                                {/* 下一曲 */}
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); onNext(); }}
+                                    className="p-4 rounded-full text-white/80 hover:text-white hover:bg-white/10 backdrop-blur-md transition-all active:scale-90"
+                                >
+                                    <svg className="w-8 h-8 sm:w-10 sm:h-10 drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" /></svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
+
+                {/* 3. 底部信息面板 (分离式设计) */}
+                <div className="mt-12 flex flex-col items-center space-y-4 z-20 animate-[fadeIn_0.8s_ease-out_0.2s_both]">
+                    <div className="text-center space-y-2">
+                        <h2
+                            className="text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-white/70 tracking-tight drop-shadow-sm"
+                            style={{
+                                backgroundImage: themeColor.gradient,
+                                WebkitBackgroundClip: 'text',
+                                WebkitTextFillColor: 'transparent',
+                                filter: 'drop-shadow(0 0 10px rgba(255,255,255,0.3))'
+                            }}
+                        >
+                            {currentTrack ? currentTrack.title : '选择歌曲'}
+                        </h2>
+                        <p
+                            className="text-sm font-bold tracking-[0.2em] uppercase text-white/60"
+                        >
+                            {currentTrack ? currentTrack.singer : '...'}
+                        </p>
+                    </div>
+
+                    {/* 播放列表按钮 */}
+                    <button
+                        onClick={onTogglePlaylist}
+                        className="group relative px-6 py-2 rounded-full overflow-hidden transition-all hover:scale-105 active:scale-95"
+                    >
+                        <div className="absolute inset-0 bg-white/5 group-hover:bg-white/10 transition-colors" />
+                        <div className="absolute inset-0 border border-white/10 rounded-full" />
+                        <span
+                            className="relative flex items-center gap-2 text-xs font-bold tracking-widest uppercase"
+                            style={{ color: themeColor.primary }}
+                        >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+                            播放列表
+                        </span>
+                    </button>
+                </div>
+
+                {/* 隐藏的音频元素 */}
+                <audio
+                    ref={audioRef}
+                    src={audioUrl}
+                    crossOrigin="anonymous"
+                    onTimeUpdate={handleTimeUpdate}
+                    onLoadedMetadata={handleLoadedMetadata}
+                    onEnded={onEnded}
+                    className="hidden"
+                />
             </div>
-
-            {/* 播放列表切换按钮 (悬浮在下方) */}
-            <button
-                onClick={onTogglePlaylist}
-                className="mt-12 px-6 py-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-all flex items-center gap-2 text-sm font-medium tracking-wider"
-                style={{ color: themeColor.primary }}
-            >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
-                播放列表
-            </button>
-
-            {/* 隐藏的音频元素 */}
-            <audio
-                ref={audioRef}
-                src={audioUrl}
-                crossOrigin="anonymous"
-                onTimeUpdate={handleTimeUpdate}
-                onLoadedMetadata={handleLoadedMetadata}
-                onEnded={onEnded}
-                className="hidden"
-            />
-        </div>
+        </>
     );
 }

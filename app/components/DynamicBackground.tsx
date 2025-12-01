@@ -61,6 +61,8 @@ export default function DynamicBackground({ isPlaying, audioDataRef, vinylPositi
   const [flyingNotes, setFlyingNotes] = useState<FlyingNote[]>([]);
   const requestRef = useRef<number>(0);
   const lastRippleTime = useRef<number>(0);
+  const lastIntensity = useRef<number>(0);
+  const beatCooldown = useRef<number>(0);
 
   // 获取符号的辅助函数
   const getSymbol = (noteName: string) => {
@@ -121,19 +123,19 @@ export default function DynamicBackground({ isPlaying, audioDataRef, vinylPositi
         intensity = audioDataRef.current.intensity;
         bass = audioDataRef.current.bass;
         high = audioDataRef.current.high;
-      } else {
-        intensity = 128;
-        bass = 100;
-        high = 100;
       }
 
-      const normalizedIntensity = intensity / 255;
+      // 节拍检测逻辑 (Beat Detection)
+      // 降低阈值以确保更容易触发
+      const isBeat = intensity > 80 && intensity > lastIntensity.current * 1.1;
 
-      // 增加阈值以获得更好的性能（减少音符频率）
-      const baseThreshold = 600; // 从 400 增加
-      const threshold = baseThreshold - (normalizedIntensity * 400);
+      // 冷却时间检查
+      const canSpawn = time - beatCooldown.current > 200;
 
-      if (time - lastRippleTime.current > threshold) {
+      // 保底机制：如果长时间没有音符（例如 2秒），强制生成一个
+      const forceSpawn = time - beatCooldown.current > 2000;
+
+      if ((isBeat && canSpawn) || forceSpawn) {
         const musicalNote = getMusicalNote(intensity, bass, high);
 
         // 确定音符特征
@@ -166,13 +168,14 @@ export default function DynamicBackground({ isPlaying, audioDataRef, vinylPositi
         setFlyingNotes(prev => {
           // 限制最大飞行音符数量以保证性能
           const newNotes = [...prev, flyingNote];
-          return newNotes.length > 8 ? newNotes.slice(-8) : newNotes;
+          return newNotes.length > 12 ? newNotes.slice(-12) : newNotes;
         });
 
-        // 当音符落地时安排涟漪创建（在动画结束前稍早一点以实现视觉同步）
+        // 当音符落地时安排涟漪创建
         setTimeout(() => {
           // 创建符号涟漪
           const symbol = getSymbol(musicalNote.name);
+          const normalizedIntensity = Math.max(0.4, intensity / 255); // 确保最小可见度
           const newRipple: MusicalRipple = {
             id: time + 1000,
             x: endX,
@@ -182,19 +185,20 @@ export default function DynamicBackground({ isPlaying, audioDataRef, vinylPositi
             frequency: musicalNote.frequency,
             intensity: normalizedIntensity,
             color: musicalNote.color,
-            size: isLowNote ? 200 : isHighNote ? 100 : 150, // 缩放的基础尺寸
+            size: isLowNote ? 200 : isHighNote ? 100 : 150,
             speed: isLowNote ? 3 : isHighNote ? 1.5 : 2,
           };
 
           setRipples(prev => {
-            // 限制最大涟漪数量以保证性能
             const newRipples = [...prev, newRipple];
-            return newRipples.length > 6 ? newRipples.slice(-6) : newRipples;
+            return newRipples.length > 8 ? newRipples.slice(-8) : newRipples;
           });
-        }, flightDuration * 1000 - 50); // 在音符消失前 50ms 开始涟漪，以实现平滑过渡
+        }, flightDuration * 1000 - 50);
 
-        lastRippleTime.current = time;
+        beatCooldown.current = time;
       }
+
+      lastIntensity.current = intensity;
 
       // 清理
       setRipples(prev => prev.filter(r => time - r.id < (r.speed * 1000)));
@@ -209,7 +213,7 @@ export default function DynamicBackground({ isPlaying, audioDataRef, vinylPositi
   }, [isPlaying, audioDataRef, vinylPosition]);
 
   return (
-    <div className="fixed inset-0 -z-50 overflow-hidden pointer-events-none">
+    <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
       {/* 基础渐变 - 如果可用则使用主题色 */}
       <div
         className="absolute inset-0 transition-colors duration-1000"
@@ -298,7 +302,7 @@ export default function DynamicBackground({ isPlaying, audioDataRef, vinylPositi
           }}
         >
           {/* 生成 3 个波浪层 */}
-          {[0, 1, 2].map((i) => {
+          {[0,].map((i) => {
             const maxScale = 10 - i * 5;
             return (
               <div

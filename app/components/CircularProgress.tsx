@@ -41,7 +41,7 @@ export default function CircularProgress({ radius, stroke, progress, color, onCh
             >
                 {/* 轨道 */}
                 <circle
-                    stroke="rgba(255, 255, 255, 0.05)"
+                    stroke="rgba(255, 255, 255, 0.03)"
                     strokeWidth={stroke}
                     fill="transparent"
                     r={normalizedRadius}
@@ -56,7 +56,7 @@ export default function CircularProgress({ radius, stroke, progress, color, onCh
                     style={{
                         strokeDashoffset,
                         transition: 'stroke-dashoffset 0.1s linear',
-                        filter: `drop-shadow(0 0 8px ${color})`
+                        filter: `drop-shadow(0 0 10px ${color}) drop-shadow(0 0 20px ${color})`
                     }}
                     strokeLinecap="round"
                     fill="transparent"
@@ -78,10 +78,10 @@ export default function CircularProgress({ radius, stroke, progress, color, onCh
                 }}
             >
                 <div
-                    className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full"
+                    className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 border-white"
                     style={{
-                        backgroundColor: '#fff',
-                        boxShadow: `0 0 15px 2px ${color}, 0 0 5px #fff`,
+                        backgroundColor: color,
+                        boxShadow: `0 0 20px 5px ${color}, 0 0 10px #fff`,
                         marginTop: stroke / 2 // 精确对齐描边中心
                     }}
                 />
