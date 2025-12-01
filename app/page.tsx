@@ -195,7 +195,7 @@ export default function Home() {
       )}
 
       <div className="mt-12 text-center text-white/20 text-xs font-mono tracking-widest">
-        SERENDIPITY MUSIC PLAYER • NEXT.JS
+        SERENDIPITY MUSIC PLAYER • NEXT.JS • BY DCDLOVE
       </div>
     </div>
   )

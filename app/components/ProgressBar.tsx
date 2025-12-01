@@ -32,15 +32,15 @@ export default function ProgressBar({ currentTime, duration, onSeek }: ProgressB
                 className="h-2 bg-white/10 rounded-full cursor-pointer relative overflow-hidden"
                 onClick={handleClick}
             >
-                {/* Background Track */}
+                {/* 背景轨道 */}
                 <div className="absolute inset-0 bg-white/5 group-hover:bg-white/10 transition-colors" />
 
-                {/* Progress Fill */}
+                {/* 进度填充 */}
                 <div
                     className="absolute top-0 left-0 h-full bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full transition-all duration-100 ease-linear relative"
                     style={{ width: `${percent}%` }}
                 >
-                    {/* Glow Effect */}
+                    {/* 发光效果 */}
                     <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.8)] opacity-0 group-hover:opacity-100 transition-opacity transform scale-150" />
                 </div>
             </div>
