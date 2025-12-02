@@ -10,7 +10,7 @@ export default function Home() {
   // 状态
   const [audioUrl, setAudioUrl] = useState<string>('/api/res2?name=%E4%B8%83%E5%85%AC%E4%B8%BB-%E7%A7%8B%E5%A4%A9%E5%A5%8F%E9%B8%A3%E6%9B%B2.lkmp3')
   const [playlist, setPlaylist] = useState<Song[]>([])
-  const [searchTerm, setSearchTerm] = useState<string>('小凌')
+  const [searchTerm, setSearchTerm] = useState<string>('黄霄雲')//小凌
   const [sortMode, setSortMode] = useState<SortMode>('default')
   const [likedSongs, setLikedSongs] = useState<Set<string>>(new Set())
   const [randomList, setRandomList] = useState<Song[]>([])
