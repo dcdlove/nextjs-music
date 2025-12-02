@@ -16,15 +16,15 @@ const SongItem = memo(({ item, index, isPlaying, isLiked, onPlay, onLike }: Song
     return (
         <li
             className={`group relative flex items-center justify-between gap-4 p-3 rounded-xl cursor-pointer transition-all duration-300 border border-transparent ${isPlaying
-                    ? 'bg-white/10 border-white/10 shadow-[0_0_20px_rgba(34,211,238,0.1)]'
-                    : 'hover:bg-white/5 hover:border-white/5'
+                ? 'bg-white/10 border-white/10 shadow-[0_0_20px_rgba(34,211,238,0.1)]'
+                : 'hover:bg-white/5 hover:border-white/5'
                 } ${item.null ? 'opacity-40 pointer-events-none grayscale' : ''}`}
             onClick={() => onPlay(decodedUrl)}
             style={{
                 animation: `fadeInUp 0.3s ease-out ${index * 0.02}s both`
             }}
         >
-            {/* Playing Indicator Bar */}
+            {/* 播放指示条 */}
             {isPlaying && (
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-cyan-400 rounded-r-full shadow-[0_0_10px_rgba(34,211,238,0.8)] animate-pulse" />
             )}

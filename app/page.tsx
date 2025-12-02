@@ -7,7 +7,7 @@ import SongList from './components/SongList'
 import { Song, SortMode } from './types'
 
 export default function Home() {
-  // State
+  // 状态
   const [audioUrl, setAudioUrl] = useState<string>('/api/res2?name=%E4%B8%83%E5%85%AC%E4%B8%BB-%E7%A7%8B%E5%A4%A9%E5%A5%8F%E9%B8%A3%E6%9B%B2.lkmp3')
   const [playlist, setPlaylist] = useState<Song[]>([])
   const [searchTerm, setSearchTerm] = useState<string>('小凌')
@@ -17,7 +17,7 @@ export default function Home() {
   const [isPlaying, setIsPlaying] = useState(false)
   const [isPlaylistOpen, setIsPlaylistOpen] = useState(false)
 
-  // Fetch Data
+  // 获取数据
   useEffect(() => {
     const isPC = () => {
       const userAgentInfo = navigator.userAgent
@@ -46,7 +46,7 @@ export default function Home() {
     fetchData()
   }, [])
 
-  // Load Liked Songs
+  // 加载喜欢的歌曲
   useEffect(() => {
     const stored = localStorage.getItem('likedSongs')
     if (stored) {
@@ -54,7 +54,7 @@ export default function Home() {
     }
   }, [])
 
-  // Toggle Like
+  // 切换喜欢状态
   const toggleLike = useCallback((url: string) => {
     const decodedUrl = decodeURIComponent(url)
     setLikedSongs(prev => {
@@ -69,7 +69,7 @@ export default function Home() {
     })
   }, [])
 
-  // Filtered List
+  // 过滤后的列表
   const filteredList = useMemo(() => {
     const keyword = searchTerm.toLowerCase()
     return playlist.filter(item =>
@@ -77,7 +77,7 @@ export default function Home() {
     )
   }, [playlist, searchTerm])
 
-  // Random List Logic
+  // 随机列表逻辑
   useEffect(() => {
     if (sortMode === 'random') {
       const listToShuffle = [...filteredList]
@@ -91,7 +91,7 @@ export default function Home() {
     }
   }, [sortMode, filteredList])
 
-  // Sorted List
+  // 排序后的列表
   const sortedList = useMemo(() => {
     if (sortMode === 'random') return randomList
 
@@ -103,7 +103,7 @@ export default function Home() {
     return list
   }, [sortMode, filteredList, randomList, likedSongs])
 
-  // Navigation Logic
+  // 导航逻辑
   const playTrack = useCallback((url: string) => {
     setAudioUrl(url)
     setIsPlaying(true)
@@ -149,7 +149,7 @@ export default function Home() {
         />
       </div>
 
-      {/* Playlist Drawer */}
+      {/* 播放列表抽屉 */}
       <div
         className={`fixed inset-y-0 right-0 w-full sm:w-[400px] bg-[#0f172a]/95 backdrop-blur-xl border-l border-white/10 shadow-2xl z-40 transform transition-all duration-500 ease-out ${isPlaylistOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
           }`}
@@ -186,7 +186,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Backdrop for mobile */}
+      {/* 移动端遮罩层 */}
       {isPlaylistOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-30 backdrop-blur-sm transition-opacity sm:hidden animate-[fadeIn_0.3s_ease-out]"

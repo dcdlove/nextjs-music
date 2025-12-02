@@ -12,7 +12,7 @@ interface Vinyl3DProps {
 export default function Vinyl3D({ isPlaying, themeColor }: Vinyl3DProps) {
     return (
         <div className="relative w-full h-full" style={{ perspective: '1000px' }}>
-            {/* 3D Container */}
+            {/* 3D 容器 */}
             <div
                 className={`relative w-full h-full transition-transform duration-700 ${isPlaying ? 'animate-[spin_10s_linear_infinite]' : ''}`}
                 style={{
@@ -20,7 +20,7 @@ export default function Vinyl3D({ isPlaying, themeColor }: Vinyl3DProps) {
                     transform: isPlaying ? 'rotateY(5deg)' : 'rotateY(0deg)',
                 }}
             >
-                {/* Vinyl Record - Front Face */}
+                {/* 黑胶唱片 - 正面 */}
                 <div
                     className="absolute inset-0 rounded-full flex items-center justify-center overflow-hidden"
                     style={{
@@ -34,7 +34,7 @@ export default function Vinyl3D({ isPlaying, themeColor }: Vinyl3DProps) {
                         transform: 'translateZ(8px)',
                     }}
                 >
-                    {/* Vinyl Grooves */}
+                    {/* 黑胶纹理 */}
                     <div className="absolute inset-0 opacity-40">
                         {[...Array(30)].map((_, i) => (
                             <div
@@ -50,7 +50,7 @@ export default function Vinyl3D({ isPlaying, themeColor }: Vinyl3DProps) {
                         ))}
                     </div>
 
-                    {/* Reflective Shine */}
+                    {/* 反光光泽 */}
                     <div
                         className="absolute inset-0 rounded-full opacity-30"
                         style={{
@@ -59,7 +59,7 @@ export default function Vinyl3D({ isPlaying, themeColor }: Vinyl3DProps) {
                         }}
                     />
 
-                    {/* Center Label */}
+                    {/* 中心标签 */}
                     <div
                         className="relative w-20 h-20 rounded-full flex items-center justify-center shadow-inner"
                         style={{
@@ -71,10 +71,10 @@ export default function Vinyl3D({ isPlaying, themeColor }: Vinyl3DProps) {
                             transform: 'translateZ(4px)',
                         }}
                     >
-                        {/* Inner Circle */}
+                        {/* 内圈 */}
                         <div className="w-3 h-3 rounded-full bg-slate-900 shadow-lg" />
 
-                        {/* Rotating Gradient Overlay */}
+                        {/* 旋转渐变覆盖层 */}
                         {isPlaying && (
                             <div
                                 className="absolute inset-0 rounded-full opacity-60 animate-spin"
@@ -87,7 +87,7 @@ export default function Vinyl3D({ isPlaying, themeColor }: Vinyl3DProps) {
                     </div>
                 </div>
 
-                {/* Vinyl Edge/Thickness */}
+                {/* 黑胶边缘/厚度 */}
                 <div
                     className="absolute inset-0 rounded-full"
                     style={{
@@ -98,7 +98,7 @@ export default function Vinyl3D({ isPlaying, themeColor }: Vinyl3DProps) {
                 />
             </div>
 
-            {/* Glow Effect */}
+            {/* 发光效果 */}
             {isPlaying && (
                 <div
                     className="absolute inset-0 rounded-full animate-pulse"

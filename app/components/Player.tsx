@@ -157,6 +157,21 @@ export default function Player({
         }
     };
 
+    // 响应式处理
+    const [isSmallScreen, setIsSmallScreen] = useState(false);
+
+    useEffect(() => {
+        const checkScreenSize = () => {
+            setIsSmallScreen(window.innerWidth < 640);
+        };
+
+        // 初始化检查
+        checkScreenSize();
+
+        window.addEventListener('resize', checkScreenSize);
+        return () => window.removeEventListener('resize', checkScreenSize);
+    }, []);
+
     // 计算圆形进度条的进度
     const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
@@ -198,14 +213,14 @@ export default function Player({
                             <CircularVisualizer
                                 analyser={analyserNode}
                                 isPlaying={isPlaying}
-                                radius={window.innerWidth < 640 ? 180 : 235}
+                                radius={isSmallScreen ? 180 : 235}
                             />
                         </div>
 
                         {/* B. 进度光环 (激光质感) */}
                         <div className="absolute inset-[-10px] z-10">
                             <CircularProgress
-                                radius={window.innerWidth < 640 ? 170 : 220}
+                                radius={isSmallScreen ? 170 : 220}
                                 stroke={4}
                                 progress={progress}
                                 color={themeColor.primary}
