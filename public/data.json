@@ -3070,6 +3070,12 @@
         },
         {
             "singer": "黄霄雲",
+            "title": "打开",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "黄霄雲",
             "title": "梦返",
             "ext": ".mp3",
             "null": false
@@ -3112,6 +3118,12 @@
         },
         {
             "singer": "黄霄雲",
+            "title": "要不然我们就这样一万年",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "黄霄雲",
             "title": "星辰大海",
             "ext": ".mp3",
             "null": false
@@ -3119,6 +3131,18 @@
         {
             "singer": "黄霄雲",
             "title": "蝴蝶夫人",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "黄霄雲",
+            "title": "你真的够了",
+            "ext": ".mp3",
+            "null": false
+        },
+        {
+            "singer": "黄霄雲",
+            "title": "淬炼",
             "ext": ".mp3",
             "null": false
         },
