@@ -1,4 +1,4 @@
-import React, { memo } from 'react'
+import React, { memo, useState, useCallback } from 'react'
 
 /**
  * 播放控制组件 Props
@@ -19,6 +19,10 @@ interface PlayerControlsProps {
 /**
  * 播放控制组件
  * 包含上一曲、播放/暂停、下一曲按钮
+ *
+ * 进化特性：
+ * - 播放/暂停按钮光晕爆发效果
+ * - 上一曲/下一曲黑胶「甩」动效果
  */
 function PlayerControlsComponent({
   isPlaying,
@@ -31,6 +35,17 @@ function PlayerControlsComponent({
   const buttonSize = size === 'small' ? 'w-20 h-20' : 'w-24 sm:w-24 sm:h-24'
   const playIconSize = size === 'small' ? 'w-10 h-10' : 'w-10 h-10 sm:w-12 sm:h-12'
   const gap = size === 'small' ? 'gap-6' : 'gap-6 sm:gap-10'
+
+  // 光晕爆发状态
+  const [isBursting, setIsBursting] = useState(false)
+
+  // 播放/暂停点击 - 触发光晕爆发
+  const handlePlayPause = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation()
+    setIsBursting(true)
+    setTimeout(() => setIsBursting(false), 400)
+    onPlayPause()
+  }, [onPlayPause])
 
   return (
     <div className="absolute inset-0 flex items-center justify-center z-30 transition-all duration-500 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-hover:backdrop-blur-[2px]">
@@ -46,10 +61,10 @@ function PlayerControlsComponent({
           </svg>
         </button>
 
-        {/* 播放/暂停 */}
+        {/* 播放/暂停 - 光晕爆发效果 */}
         <button
-          onClick={(e) => { e.stopPropagation(); onPlayPause() }}
-          className={`${buttonSize} flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 text-white shadow-[0_0_30px_rgba(255,255,255,0.2)] transition-all duration-300 hover:scale-110 active:scale-95`}
+          onClick={handlePlayPause}
+          className={`${buttonSize} flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 text-white shadow-[0_0_30px_rgba(255,255,255,0.2)] transition-all duration-300 hover:scale-110 active:scale-95 ${isBursting ? 'animate-play-burst' : ''}`}
           aria-label={isPlaying ? '暂停' : '播放'}
         >
           {isPlaying ? (

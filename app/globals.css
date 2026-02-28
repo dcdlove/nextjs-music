@@ -3,22 +3,43 @@
 :root {
   --background: #0f172a;
   --foreground: #ffffff;
+
+  /* 字体系统 - Neo-Vinyl Futurism 设计语言 */
+  --font-display: "DM Serif Display", Georgia, "Times New Roman", serif;
+  --font-body: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", monospace;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-mono);
 }
 
 body {
   background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
   background-attachment: fixed;
   color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-body);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 显示字体类 - 用于标题、歌曲名 */
+.font-display {
+  font-family: var(--font-display);
+}
+
+/* 正文字体类 - 用于列表、描述、UI文字 */
+.font-body {
+  font-family: var(--font-body);
+}
+
+/* 等宽字体类 - 用于时间、编号 */
+.font-mono {
+  font-family: var(--font-mono);
 }
 
 /* Custom Scrollbar */
@@ -125,4 +146,324 @@ body {
 .gpu-accelerated {
   transform: translateZ(0);
   will-change: transform;
+}
+
+/* ========================================
+   页面加载编排动画系统 (Page Load Orchestration)
+   入场时序：
+   0.0s - 背景渐变开始显现
+   0.2s - 环境光球淡入
+   0.4s - 黑胶唱片旋转进入
+   0.6s - 歌曲信息滑入
+   0.8s - 播放控制按钮依次出现
+   1.0s - 歌曲列表抽屉滑入
+   1.2s - 飞行音符开始出现
+   ======================================== */
+
+/* 页面入场 - 背景 */
+@keyframes page-enter-bg {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 元素入场 - 淡入 + 缩放 */
+@keyframes enter-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* 元素入场 - 从下方滑入 */
+@keyframes enter-from-bottom {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 元素入场 - 从右侧滑入 */
+@keyframes enter-from-right {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* 元素入场 - 从左侧滑入 */
+@keyframes enter-from-left {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* 黑胶唱片入场 - 旋转 + 缩放 */
+@keyframes vinyl-enter {
+  0% {
+    opacity: 0;
+    transform: scale(0.6) rotate(-180deg);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.05) rotate(10deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* 光晕入场 - 从中心扩散 */
+@keyframes glow-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+    filter: blur(40px);
+  }
+  to {
+    opacity: 0.4;
+    transform: scale(1);
+    filter: blur(60px);
+  }
+}
+
+/* 依次出现动画类 */
+.animate-enter-bg {
+  animation: page-enter-bg 0.6s ease-out 0s both;
+}
+
+.animate-enter-scale {
+  animation: enter-scale 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.animate-enter-bottom {
+  animation: enter-from-bottom 0.5s ease-out both;
+}
+
+.animate-enter-right {
+  animation: enter-from-right 0.5s ease-out both;
+}
+
+.animate-enter-left {
+  animation: enter-from-left 0.5s ease-out both;
+}
+
+.animate-vinyl-enter {
+  animation: vinyl-enter 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.animate-glow-enter {
+  animation: glow-enter 0.8s ease-out both;
+}
+
+/* 时序延迟类 */
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+.delay-400 { animation-delay: 0.4s; }
+.delay-500 { animation-delay: 0.5s; }
+.delay-600 { animation-delay: 0.6s; }
+.delay-700 { animation-delay: 0.7s; }
+.delay-800 { animation-delay: 0.8s; }
+.delay-900 { animation-delay: 0.9s; }
+.delay-1000 { animation-delay: 1.0s; }
+.delay-1200 { animation-delay: 1.2s; }
+
+/* ========================================
+   黑胶唱片进化动画
+   ======================================== */
+
+/* 呼吸旋转 - 旋转速度随节拍微调 */
+@keyframes breathe-rotate {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(92deg);
+  }
+  50% {
+    transform: rotate(178deg);
+  }
+  75% {
+    transform: rotate(268deg);
+  }
+}
+
+/* 边缘发光脉冲 */
+@keyframes edge-glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 20px var(--theme-primary, #22d3ee),
+                0 0 40px var(--theme-primary, #22d3ee),
+                inset 0 0 20px rgba(0,0,0,0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px var(--theme-primary, #22d3ee),
+                0 0 60px var(--theme-primary, #22d3ee),
+                inset 0 0 30px rgba(0,0,0,0.5);
+  }
+}
+
+/* 时空裂隙 - 从中心扩散的光圈 */
+@keyframes time-rift {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(3);
+    opacity: 0;
+  }
+}
+
+.animate-breathe-rotate {
+  animation: breathe-rotate 20s linear infinite;
+}
+
+.animate-edge-glow {
+  animation: edge-glow-pulse 2s ease-in-out infinite;
+}
+
+.animate-time-rift {
+  animation: time-rift 2s ease-out forwards;
+}
+
+/* ========================================
+   微交互增强动画
+   ======================================== */
+
+/* 播放/暂停按钮 - 光晕爆发 */
+@keyframes play-burst {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255,255,255,0.4);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 20px rgba(255,255,255,0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255,255,255,0);
+  }
+}
+
+/* 收藏心跳 */
+@keyframes heart-beat {
+  0%, 100% {
+    transform: scale(1);
+  }
+  14% {
+    transform: scale(1.3);
+  }
+  28% {
+    transform: scale(1);
+  }
+  42% {
+    transform: scale(1.3);
+  }
+  70% {
+    transform: scale(1);
+  }
+}
+
+/* 粒子爆发 */
+@keyframes particle-burst {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--tx, 20px), var(--ty, -20px)) scale(0);
+    opacity: 0;
+  }
+}
+
+/* 进度条发光轨迹 */
+@keyframes progress-glow {
+  from {
+    filter: drop-shadow(0 0 8px var(--theme-primary, #22d3ee));
+  }
+  to {
+    filter: drop-shadow(0 0 15px var(--theme-primary, #22d3ee));
+  }
+}
+
+/* 列表项浮起 */
+@keyframes list-item-float {
+  from {
+    transform: translateY(0);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+  to {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+  }
+}
+
+/* 洗牌动画 */
+@keyframes shuffle-fly {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+  25% {
+    transform: translate(50px, -30px) rotate(10deg);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translate(-30px, -60px) rotate(-5deg);
+    opacity: 0.6;
+  }
+  75% {
+    transform: translate(20px, -30px) rotate(5deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.animate-play-burst {
+  animation: play-burst 0.4s ease-out;
+}
+
+.animate-heart-beat {
+  animation: heart-beat 0.8s ease-in-out;
+}
+
+.animate-progress-glow {
+  animation: progress-glow 1s ease-in-out infinite alternate;
+}
+
+.animate-list-float {
+  animation: list-item-float 0.3s ease-out forwards;
+}
+
+.animate-shuffle {
+  animation: shuffle-fly 0.6s ease-in-out;
 }

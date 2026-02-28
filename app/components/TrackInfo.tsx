@@ -28,10 +28,10 @@ function TrackInfoComponent({
   primaryColor
 }: TrackInfoProps) {
   return (
-    <div className="mt-12 flex flex-col items-center space-y-4 z-20 animate-[fadeIn_0.8s_ease-out_0.2s_both]">
+    <div className="mt-12 flex flex-col items-center space-y-4 z-20 animate-enter-right delay-600">
       <div className="text-center space-y-2">
         <h2
-          className="text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-white/70 tracking-tight drop-shadow-sm"
+          className="font-display text-3xl sm:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-white/70 tracking-tight drop-shadow-sm"
           style={{
             backgroundImage: gradient,
             WebkitBackgroundClip: 'text',
@@ -41,7 +41,7 @@ function TrackInfoComponent({
         >
           {title || '选择歌曲'}
         </h2>
-        <p className="text-sm font-bold tracking-[0.2em] uppercase text-white/60">
+        <p className="font-body text-sm font-semibold tracking-[0.2em] uppercase text-white/60">
           {singer || '...'}
         </p>
       </div>
@@ -54,7 +54,7 @@ function TrackInfoComponent({
         <div className="absolute inset-0 bg-white/5 group-hover:bg-white/10 transition-colors" />
         <div className="absolute inset-0 border border-white/10 rounded-full" />
         <span
-          className="relative flex items-center gap-2 text-xs font-bold tracking-widest uppercase"
+          className="font-body relative flex items-center gap-2 text-xs font-bold tracking-widest uppercase"
           style={{ color: primaryColor }}
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

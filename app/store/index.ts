@@ -2,6 +2,16 @@ import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import { Song, SortMode } from '../types'
 import { musicApi, ApiError } from '../services/api'
+import { ThemeColor } from '../hooks/useThemeColor'
+
+/**
+ * 音频分析数据类型
+ */
+export interface AudioData {
+  intensity: number
+  bass: number
+  high: number
+}
 
 /**
  * Store 类型定义
@@ -11,6 +21,12 @@ export interface Store {
   audioUrl: string
   isPlaying: boolean
   isPlaylistOpen: boolean
+
+  // 音频分析数据（用于 DynamicBackground）
+  audioData: AudioData
+
+  // 主题色（用于 DynamicBackground）
+  themeColor: ThemeColor | null
 
   // 播放列表状态
   playlist: Song[]
@@ -30,6 +46,10 @@ export interface Store {
   setIsPlaying: (playing: boolean) => void
   togglePlay: () => void
   togglePlaylist: () => void
+
+  // 音频数据 Actions
+  setAudioData: (data: AudioData) => void
+  setThemeColor: (color: ThemeColor | null) => void
 
   // 播放列表 Actions
   setPlaylist: (songs: Song[]) => void
@@ -91,14 +111,25 @@ export const useStore = create<Store>()(
   devtools(
     (set, get) => ({
       // ===== 播放器状态 =====
-      audioUrl: '/api/res2?name=%E4%B8%83%E5%85%AC%E4%B8%BB-%E7%A7%8B%E5%A4%A9%E5%A5%8F%E9%B8%A3%E6%9B%B2.lkmp3',
+
+      audioUrl: '', // 初始为空，playlist 加载后自动设置默认曲目
       isPlaying: false,
       isPlaylistOpen: false,
+
+      // 音频分析数据
+      audioData: { intensity: 0, bass: 0, high: 0 },
+
+      // 主题色
+      themeColor: null,
 
       setAudioUrl: (url) => set({ audioUrl: url }),
       setIsPlaying: (playing) => set({ isPlaying: playing }),
       togglePlay: () => set((state) => ({ isPlaying: !state.isPlaying })),
       togglePlaylist: () => set((state) => ({ isPlaylistOpen: !state.isPlaylistOpen })),
+
+      // 音频数据和主题色 Actions
+      setAudioData: (data) => set({ audioData: data }),
+      setThemeColor: (color) => set({ themeColor: color }),
 
       // ===== 播放列表状态 =====
       playlist: [],
