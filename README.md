@@ -1,36 +1,137 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Serendipity Music Player
 
-## Getting Started
+> 一款基于 Next.js 15 的在线音乐播放器，采用黑胶唱片风格设计，支持音频可视化和动态主题色。
 
-First, run the development server:
+## 功能特性
+
+- 🎵 **在线流式播放** - 支持边下边播，无需等待
+- 💿 **黑胶唱片设计** - 3D 悬浮效果 + 旋转动画
+- 🎨 **动态主题色** - 根据曲目自动生成独特渐变配色
+- 📊 **音频可视化** - 实时频谱分析 + 环形可视化器
+- ✨ **动态背景** - 随音乐低音节拍律动的飞行音符
+- ❤️ **收藏功能** - localStorage 持久化收藏列表
+- 🔀 **多种排序** - 默认/随机/收藏三种播放模式
+- 🔍 **快速搜索** - 按歌手名或歌曲名实时过滤
+- 📱 **响应式设计** - 完美适配移动端和桌面端
+
+## 技术栈
+
+| 类别 | 技术 |
+|------|------|
+| 框架 | Next.js 15.3.6 (App Router + Turbopack) |
+| 前端 | React 19 (函数组件 + Hooks) |
+| 语言 | TypeScript 5 |
+| 样式 | Tailwind CSS 4 + 自定义 CSS 动画 |
+| 状态 | Zustand 5 |
+| 字体 | Playfair Display + Plus Jakarta Sans + JetBrains Mono |
+| 音频 | Web Audio API (音频分析 + 可视化) |
+| 测试 | Vitest + React Testing Library |
+| 部署 | Vercel |
+
+## 快速开始
+
+### 安装依赖
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 开发模式
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+打开 [http://localhost:3000](http://localhost:3000) 查看效果。
 
-## Learn More
+### 生产构建
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+pnpm build
+pnpm start
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 脚本命令
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+<!-- AUTO-GENERATED: scripts -->
+| 命令 | 描述 |
+|------|------|
+| `pnpm dev` | 启动开发服务器 (Turbopack) |
+| `pnpm build` | 生产环境构建 |
+| `pnpm start` | 启动生产服务器 |
+| `pnpm lint` | 运行 ESLint 检查 |
+| `pnpm test` | 运行测试 (监听模式) |
+| `pnpm test:run` | 运行测试 (单次) |
+| `pnpm test:coverage` | 运行测试并生成覆盖率报告 |
+<!-- /AUTO-GENERATED: scripts -->
 
-## Deploy on Vercel
+## 项目结构
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+nextjs-music/
+├── app/                    # Next.js App Router
+│   ├── api/                # API 路由层
+│   │   ├── res/            # GitHub 代理接口
+│   │   └── res2/           # jsDelivr CDN 代理接口
+│   ├── components/         # UI 组件
+│   │   ├── Player.tsx      # 核心播放器
+│   │   ├── DynamicBackground.tsx  # 动态背景
+│   │   └── ...
+│   ├── hooks/              # 自定义 Hooks
+│   ├── services/           # API 服务层
+│   ├── store/              # Zustand 状态管理
+│   └── page.tsx            # 主页面
+├── public/
+│   └── data.json           # 歌曲元数据
+└── docs/                   # 项目文档
+    └── DESIGN_ITERATION_PLAN.md  # 设计迭代计划
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## API 接口
+
+### GET /api/res
+
+GitHub 代理接口，用于获取音乐文件。
+
+**参数:**
+- `name`: 音乐文件名 (需 URL 编码)
+- `proxy`: 代理节点 (默认: `ghfast.top`)
+
+### GET /api/res2
+
+jsDelivr CDN 代理接口，用于移动端。
+
+**参数:**
+- `name`: 音乐文件名 (需双重 URL 编码)
+
+## 设计风格
+
+- **主题**: 深色 (深蓝紫渐变)
+- **背景**: `linear-gradient(135deg, #0f172a, #1e1b4b, #312e81)`
+- **玻璃态**: `backdrop-blur-xl` + `bg-white/10`
+- **3D 效果**: `perspective` + `transform-style: preserve-3d`
+- **字体**:
+  - 标题: Playfair Display 900 (奢华复古感)
+  - 正文: Plus Jakarta Sans (现代友好)
+  - 等宽: JetBrains Mono (时间、编号)
+
+## 音乐资源
+
+- **存储位置**: GitHub 仓库 `dcdlove/oss` 的 `music/` 目录
+- **访问方式**: jsDelivr CDN 或 GitHub 代理
+- **命名规范**: `{歌手}-{歌名}.lk{扩展名}`
+
+## 部署
+
+项目默认部署到 Vercel，无需配置环境变量。
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/dcdlove/nextjs-music)
+
+## 文档
+
+- [设计迭代计划](docs/DESIGN_ITERATION_PLAN.md) - 产品升级蓝图
+- [项目指南](CLAUDE.md) - 开发指南和技术规范
+
+## License
+
+MIT

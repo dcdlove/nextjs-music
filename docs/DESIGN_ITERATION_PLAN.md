@@ -67,9 +67,9 @@
 | **Instrument Serif** | 当代衬线 | 编辑、精致 |
 | **DM Serif Display** | 经典优雅 | 黑胶复古 |
 
-**推荐**：**Syne** + **DM Serif Display** 组合
-- Syne 用于品牌标识和功能按钮（粗犷实验感）
-- DM Serif Display 用于歌曲标题（黑胶复古感）
+**推荐**：**Playfair Display** + **Plus Jakarta Sans** 组合 ✅ 已采用
+- Playfair Display 900 weight + italic 用于品牌标识（戏剧性高对比度衬线）
+- Plus Jakarta Sans 用于正文（现代友好）
 
 #### 1.2 正文字体（Body Font）
 用于歌曲列表、描述文字、时间显示。
@@ -471,13 +471,14 @@ document.documentElement.style.setProperty('--color-primary', newColor);
 ### 6.2 字体规范
 
 ```
-显示字体：DM Serif Display (标题、歌曲名)
+显示字体：Playfair Display 900 + italic (品牌标题 "Serendipity")
 正文字体：Plus Jakarta Sans (列表、描述)
 等宽字体：JetBrains Mono (时间、编号)
 
 字号层级：
-- 标题：text-4xl / 2.25rem
-- 副标题：text-xl / 1.25rem
+- 品牌标题：text-5xl md:text-7xl lg:text-8xl
+- 歌曲标题：text-3xl sm:text-4xl
+- 副标题：text-xs md:text-sm (tracking-[0.4em])
 - 正文：text-base / 1rem
 - 小字：text-sm / 0.875rem
 - 编号：text-xs / 0.75rem
