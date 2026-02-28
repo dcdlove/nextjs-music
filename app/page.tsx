@@ -1,73 +1,41 @@
 'use client'
-import { useEffect, useState, useMemo, useCallback } from 'react'
+import { useEffect, useMemo, useCallback } from 'react'
 import Header from './components/Header'
 import Player from './components/Player'
 import Controls from './components/Controls'
 import SongList from './components/SongList'
-import { Song, SortMode } from './types'
+import { AudioErrorBoundary } from './components/ErrorBoundary'
+import { useStore, shuffleArray } from './store'
 
 export default function Home() {
-  // 状态
-  const [audioUrl, setAudioUrl] = useState<string>('/api/res2?name=%E4%B8%83%E5%85%AC%E4%B8%BB-%E7%A7%8B%E5%A4%A9%E5%A5%8F%E9%B8%A3%E6%9B%B2.lkmp3')
-  const [playlist, setPlaylist] = useState<Song[]>([])
-  const [searchTerm, setSearchTerm] = useState<string>('黄霄雲')//小凌
-  const [sortMode, setSortMode] = useState<SortMode>('default')
-  const [likedSongs, setLikedSongs] = useState<Set<string>>(new Set())
-  const [randomList, setRandomList] = useState<Song[]>([])
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [isPlaylistOpen, setIsPlaylistOpen] = useState(false)
+  // 从 store 获取状态和 actions
+  const {
+    audioUrl,
+    isPlaying,
+    isPlaylistOpen,
+    playlist,
+    randomList,
+    isLoading,
+    error,
+    searchTerm,
+    sortMode,
+    likedSongs,
+    // Actions
+    setIsPlaying,
+    togglePlaylist,
+    fetchPlaylist,
+    setSearchTerm,
+    setSortMode,
+    toggleLike,
+    setRandomList,
+    playNext,
+    playPrev,
+  } = useStore()
 
-  // 获取数据
+  // 初始化：加载播放列表
   useEffect(() => {
-    const isPC = () => {
-      const userAgentInfo = navigator.userAgent
-      const Agents = ['Android', 'iPhone', 'SymbianOS', 'Windows Phone', 'iPad', 'iPod']
-      return !Agents.some(agent => userAgentInfo.includes(agent))
-    }
-    const isMobile = !isPC()
-
-    const fetchData = async () => {
-      try {
-        const res = await fetch('./data.json')
-        const data = await res.json()
-        const list = data.rows.map((n: any) => ({
-          ...n,
-          url2: encodeURIComponent(`https://cdn.jsdelivr.net/gh/dcdlove/oss/music/${n.singer}-${n.title}.lk${n.ext.replace('.', '')}`),
-          url: isMobile
-            ? `/api/res2?name=${encodeURIComponent(encodeURIComponent(n.singer))}-${encodeURIComponent(encodeURIComponent(n.title))}.lk${n.ext.replace('.', '')}`
-            : encodeURIComponent(`https://cdn.jsdelivr.net/gh/dcdlove/oss/music/${n.singer}-${n.title}.lk${n.ext.replace('.', '')}`),
-        }))
-        setPlaylist(list)
-      } catch (error) {
-        console.error("Failed to fetch data", error)
-      }
-    }
-
-    fetchData()
-  }, [])
-
-  // 加载喜欢的歌曲
-  useEffect(() => {
-    const stored = localStorage.getItem('likedSongs')
-    if (stored) {
-      setLikedSongs(new Set(JSON.parse(stored)))
-    }
-  }, [])
-
-  // 切换喜欢状态
-  const toggleLike = useCallback((url: string) => {
-    const decodedUrl = decodeURIComponent(url)
-    setLikedSongs(prev => {
-      const updated = new Set(prev)
-      if (updated.has(decodedUrl)) {
-        updated.delete(decodedUrl)
-      } else {
-        updated.add(decodedUrl)
-      }
-      localStorage.setItem('likedSongs', JSON.stringify(Array.from(updated)))
-      return updated
-    })
-  }, [])
+    fetchPlaylist()
+  }, [fetchPlaylist])
 
   // 过滤后的列表
   const filteredList = useMemo(() => {
@@ -80,16 +48,11 @@ export default function Home() {
   // 随机列表逻辑
   useEffect(() => {
     if (sortMode === 'random') {
-      const listToShuffle = [...filteredList]
-      for (let i = listToShuffle.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1))
-          ;[listToShuffle[i], listToShuffle[j]] = [listToShuffle[j], listToShuffle[i]]
-      }
-      setRandomList(listToShuffle)
+      setRandomList(shuffleArray(filteredList))
     } else {
       setRandomList([])
     }
-  }, [sortMode, filteredList])
+  }, [sortMode, filteredList, setRandomList])
 
   // 排序后的列表
   const sortedList = useMemo(() => {
@@ -97,68 +60,76 @@ export default function Home() {
 
     let list = [...filteredList]
     if (sortMode === 'liked') {
-      // Filter to only show liked songs
-      list = list.filter(song => likedSongs.has(decodeURIComponent(song.url)))
+      list = list.filter(song => likedSongs.includes(decodeURIComponent(song.url)))
     }
     return list
   }, [sortMode, filteredList, randomList, likedSongs])
 
-  // 导航逻辑
+  // 当前曲目
+  const currentTrack = useMemo(() => {
+    return playlist.find(item => decodeURIComponent(item.url) === audioUrl)
+  }, [playlist, audioUrl])
+
+  // 播放指定曲目
   const playTrack = useCallback((url: string) => {
-    setAudioUrl(url)
-    setIsPlaying(true)
+    useStore.getState().setAudioUrl(decodeURIComponent(url))
+    useStore.getState().setIsPlaying(true)
   }, [])
 
+  // 导航逻辑
   const handleNext = useCallback(() => {
-    if (playlist.length === 0) return
-    const currentList = sortMode === 'random' ? randomList : playlist
-    const listToUse = currentList.length > 0 ? currentList : playlist
-
-    const currentIndex = listToUse.findIndex(item => decodeURIComponent(item.url) === audioUrl)
-    const nextIndex = (currentIndex + 1) % listToUse.length
-    playTrack(decodeURIComponent(listToUse[nextIndex].url))
-  }, [playlist, randomList, sortMode, audioUrl, playTrack])
+    playNext()
+  }, [playNext])
 
   const handlePrev = useCallback(() => {
-    if (playlist.length === 0) return
-    const currentList = sortMode === 'random' ? randomList : playlist
-    const listToUse = currentList.length > 0 ? currentList : playlist
-
-    const currentIndex = listToUse.findIndex(item => decodeURIComponent(item.url) === audioUrl)
-    const prevIndex = (currentIndex - 1 + listToUse.length) % listToUse.length
-    playTrack(decodeURIComponent(listToUse[prevIndex].url))
-  }, [playlist, randomList, sortMode, audioUrl, playTrack])
-
-  const currentTrack = playlist.find(item => decodeURIComponent(item.url) === audioUrl)
+    playPrev()
+  }, [playPrev])
 
   return (
     <div className="min-h-screen p-4 sm:p-8 max-w-3xl mx-auto pb-24 relative">
       <Header />
 
+      {/* 加载状态 */}
+      {isLoading && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+          <div className="text-white animate-pulse">加载中...</div>
+        </div>
+      )}
+
+      {/* 错误状态 */}
+      {error && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-lg z-50">
+          {error}
+        </div>
+      )}
+
       <div className="sticky top-4 z-30 mb-8">
-        <Player
-          currentTrack={currentTrack}
-          audioUrl={audioUrl}
-          onEnded={handleNext}
-          onNext={handleNext}
-          onPrev={handlePrev}
-          isPlaying={isPlaying}
-          setIsPlaying={setIsPlaying}
-          onTogglePlaylist={() => setIsPlaylistOpen(!isPlaylistOpen)}
-          isPlaylistOpen={isPlaylistOpen}
-        />
+        <AudioErrorBoundary>
+          <Player
+            currentTrack={currentTrack}
+            audioUrl={audioUrl}
+            onEnded={handleNext}
+            onNext={handleNext}
+            onPrev={handlePrev}
+            isPlaying={isPlaying}
+            setIsPlaying={setIsPlaying}
+            onTogglePlaylist={togglePlaylist}
+            isPlaylistOpen={isPlaylistOpen}
+          />
+        </AudioErrorBoundary>
       </div>
 
       {/* 播放列表抽屉 */}
       <div
-        className={`fixed inset-y-0 right-0 w-full sm:w-[400px] bg-[#0f172a]/95 backdrop-blur-xl border-l border-white/10 shadow-2xl z-40 transform transition-all duration-500 ease-out ${isPlaylistOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
-          }`}
+        className={`fixed inset-y-0 right-0 w-full sm:w-[400px] bg-[#0f172a]/95 backdrop-blur-xl border-l border-white/10 shadow-2xl z-40 transform transition-all duration-500 ease-out ${
+          isPlaylistOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
+        }`}
       >
         <div className="h-full flex flex-col p-6 overflow-hidden animate-[fadeIn_0.4s_ease-out_0.2s_both]">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold text-white">播放列表</h2>
             <button
-              onClick={() => setIsPlaylistOpen(false)}
+              onClick={togglePlaylist}
               className="p-2 text-white/60 hover:text-white rounded-full hover:bg-white/10 transition-colors active:scale-90"
             >
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -180,7 +151,7 @@ export default function Home() {
               currentUrl={audioUrl}
               onPlay={playTrack}
               onLike={toggleLike}
-              likedSongs={likedSongs}
+              likedSongs={new Set(likedSongs)}
             />
           </div>
         </div>
@@ -190,7 +161,7 @@ export default function Home() {
       {isPlaylistOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-30 backdrop-blur-sm transition-opacity sm:hidden animate-[fadeIn_0.3s_ease-out]"
-          onClick={() => setIsPlaylistOpen(false)}
+          onClick={togglePlaylist}
         />
       )}
 

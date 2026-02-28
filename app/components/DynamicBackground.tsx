@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, memo } from 'react';
 
 interface DynamicBackgroundProps {
   isPlaying: boolean;
@@ -56,7 +56,11 @@ const MUSICAL_NOTES = [
   { name: 'B', frequency: 493.88, color: 'rgba(255, 105, 180, 0.6)' },   // 热粉色
 ];
 
-export default function DynamicBackground({ isPlaying, audioDataRef, vinylPosition, themeColor }: DynamicBackgroundProps) {
+/**
+ * 动态背景组件
+ * 根据音频数据生成飞行音符和涟漪动画
+ */
+function DynamicBackgroundComponent({ isPlaying, audioDataRef, vinylPosition, themeColor }: DynamicBackgroundProps) {
   const [ripples, setRipples] = useState<MusicalRipple[]>([]);
   const [flyingNotes, setFlyingNotes] = useState<FlyingNote[]>([]);
   const requestRef = useRef<number>(0);
@@ -360,3 +364,30 @@ export default function DynamicBackground({ isPlaying, audioDataRef, vinylPositi
     </div>
   );
 }
+
+/**
+ * 使用 memo 优化动态背景组件
+ * 仅在关键 props 变化时重新渲染
+ * 注意：audioDataRef 是 ref 类型，不参与比较
+ */
+const DynamicBackground = memo(DynamicBackgroundComponent, (prevProps, nextProps) => {
+  // vinylPosition 是可选对象，需要深度比较
+  const vinylEqual = prevProps.vinylPosition && nextProps.vinylPosition
+    ? prevProps.vinylPosition.x === nextProps.vinylPosition.x &&
+      prevProps.vinylPosition.y === nextProps.vinylPosition.y
+    : prevProps.vinylPosition === nextProps.vinylPosition;
+
+  // themeColor 是可选对象，比较关键字段
+  const themeEqual = prevProps.themeColor && nextProps.themeColor
+    ? prevProps.themeColor.primary === nextProps.themeColor.primary &&
+      prevProps.themeColor.primaryRgb === nextProps.themeColor.primaryRgb
+    : prevProps.themeColor === nextProps.themeColor;
+
+  return (
+    prevProps.isPlaying === nextProps.isPlaying &&
+    vinylEqual &&
+    themeEqual
+  );
+});
+
+export default DynamicBackground;

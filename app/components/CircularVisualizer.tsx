@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, memo, useCallback } from 'react';
 
 type VisualizerMode = 'bars' | 'wave' | 'particles' | 'arcs';
 
@@ -8,7 +8,12 @@ interface CircularVisualizerProps {
     radius: number;
 }
 
-export default function CircularVisualizer({ analyser, isPlaying, radius }: CircularVisualizerProps) {
+/**
+ * 圆形音频可视化器
+ * 支持 4 种可视化模式：条形、波浪、粒子、弧线
+ * 点击切换模式
+ */
+function CircularVisualizerComponent({ analyser, isPlaying, radius }: CircularVisualizerProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [mode, setMode] = useState<VisualizerMode>('bars');
 
@@ -170,3 +175,19 @@ export default function CircularVisualizer({ analyser, isPlaying, radius }: Circ
         />
     );
 }
+
+/**
+ * 使用 memo 优化可视化器组件
+ * 仅在 props 变化时重新渲染
+ */
+const CircularVisualizer = memo(CircularVisualizerComponent, (prevProps, nextProps) => {
+    // analyser 是引用类型，但通常是稳定的实例
+    // isPlaying 和 radius 是原始类型，直接比较
+    return (
+        prevProps.analyser === nextProps.analyser &&
+        prevProps.isPlaying === nextProps.isPlaying &&
+        prevProps.radius === nextProps.radius
+    );
+});
+
+export default CircularVisualizer;
