@@ -4,6 +4,7 @@ import Header from './components/Header'
 import Player from './components/Player'
 import Controls from './components/Controls'
 import SongList from './components/SongList'
+import SingerList from './components/SingerList'
 import DynamicBackground from './components/DynamicBackground'
 import { AudioErrorBoundary } from './components/ErrorBoundary'
 import { useStore, shuffleArray } from './store'
@@ -14,6 +15,7 @@ export default function Home() {
     audioUrl,
     isPlaying,
     isPlaylistOpen,
+    isSingerListOpen,
     playlist,
     randomList,
     isLoading,
@@ -27,6 +29,7 @@ export default function Home() {
     // Actions
     setIsPlaying,
     togglePlaylist,
+    toggleSingerList,
     fetchPlaylist,
     setSearchTerm,
     setSortMode,
@@ -120,6 +123,19 @@ export default function Home() {
     playPrev()
   }, [playPrev])
 
+  // 点击歌手名：搜索该歌手并打开播放列表（同时关闭歌手列表）
+  const handleSingerClick = useCallback((singer: string) => {
+    setSearchTerm(singer)
+    // 关闭歌手列表
+    if (isSingerListOpen) {
+      toggleSingerList()
+    }
+    // 打开播放列表
+    if (!isPlaylistOpen) {
+      togglePlaylist()
+    }
+  }, [setSearchTerm, isPlaylistOpen, isSingerListOpen, togglePlaylist, toggleSingerList])
+
   return (
     <>
       {/* 动态背景 - 放在最外层，完全铺满页面 */}
@@ -163,6 +179,9 @@ export default function Home() {
             setIsPlaying={setIsPlaying}
             onTogglePlaylist={togglePlaylist}
             isPlaylistOpen={isPlaylistOpen}
+            onSingerClick={handleSingerClick}
+            onToggleSingerList={toggleSingerList}
+            isSingerListOpen={isSingerListOpen}
           />
         </AudioErrorBoundary>
       </div>
@@ -205,11 +224,55 @@ export default function Home() {
         </div>
       </div>
 
-      {/* 移动端遮罩层 */}
+      {/* 歌手列表抽屉 - 从左侧滑出 */}
+      <div
+        className={`fixed inset-y-0 left-0 w-full sm:w-[400px] bg-[#0f172a]/95 backdrop-blur-xl border-r border-white/10 shadow-2xl z-40 transform transition-all duration-500 ease-out ${
+          isSingerListOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'
+        }`}
+      >
+        <div className="h-full flex flex-col p-6 overflow-hidden animate-enter-right delay-1000">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="font-display text-xl text-white">歌手列表</h2>
+            <button
+              onClick={toggleSingerList}
+              className="p-2 text-white/60 hover:text-white rounded-full hover:bg-white/10 transition-colors active:scale-90"
+            >
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          {/* 歌手统计信息 */}
+          <div className="mb-4 px-2">
+            <p className="text-xs text-white/40 tracking-wide">
+              共 <span className="text-cyan-400 font-bold">{new Set(playlist.map(s => s.singer)).size}</span> 位歌手 · <span className="text-cyan-400 font-bold">{playlist.length}</span> 首歌曲
+            </p>
+          </div>
+
+          <div className="flex-1 overflow-hidden">
+            <SingerList
+              songs={playlist}
+              currentSinger={currentTrack?.singer}
+              onSingerClick={handleSingerClick}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* 移动端遮罩层 - 播放列表 */}
       {isPlaylistOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-30 backdrop-blur-sm transition-opacity sm:hidden animate-enter-bg"
           onClick={togglePlaylist}
+        />
+      )}
+
+      {/* 移动端遮罩层 - 歌手列表 */}
+      {isSingerListOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 backdrop-blur-sm transition-opacity sm:hidden animate-enter-bg"
+          onClick={toggleSingerList}
         />
       )}
 

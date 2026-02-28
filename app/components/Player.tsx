@@ -15,6 +15,12 @@ interface PlayerProps {
     setIsPlaying: (playing: boolean) => void;
     onTogglePlaylist: () => void;
     isPlaylistOpen: boolean;
+    /** 点击歌手名回调 */
+    onSingerClick?: (singer: string) => void;
+    /** 切换歌手列表 */
+    onToggleSingerList?: () => void;
+    /** 歌手列表是否打开 */
+    isSingerListOpen?: boolean;
 }
 
 export default function Player({
@@ -26,7 +32,10 @@ export default function Player({
     isPlaying,
     setIsPlaying,
     onTogglePlaylist,
-    isPlaylistOpen
+    isPlaylistOpen,
+    onSingerClick,
+    onToggleSingerList,
+    isSingerListOpen
 }: PlayerProps) {
     const audioRef = useRef<HTMLAudioElement>(null);
     const [currentTime, setCurrentTime] = useState(0);
@@ -335,27 +344,50 @@ export default function Player({
                             {currentTrack ? currentTrack.title : '选择歌曲'}
                         </h2>
                         <p
-                            className="text-sm font-bold tracking-[0.2em] uppercase text-white/60"
+                            className={`text-sm font-bold tracking-[0.2em] uppercase ${currentTrack && onSingerClick ? 'text-white/60 hover:text-white/90 cursor-pointer transition-colors hover:underline underline-offset-4' : 'text-white/60'}`}
+                            onClick={() => currentTrack && onSingerClick?.(currentTrack.singer)}
+                            title={currentTrack && onSingerClick ? `搜索 ${currentTrack.singer} 的歌曲` : undefined}
                         >
                             {currentTrack ? currentTrack.singer : '...'}
                         </p>
                     </div>
 
                     {/* 播放列表按钮 */}
-                    <button
-                        onClick={onTogglePlaylist}
-                        className="group relative px-6 py-2 rounded-full overflow-hidden transition-all hover:scale-105 active:scale-95"
-                    >
-                        <div className="absolute inset-0 bg-white/5 group-hover:bg-white/10 transition-colors" />
-                        <div className="absolute inset-0 border border-white/10 rounded-full" />
-                        <span
-                            className="relative flex items-center gap-2 text-xs font-bold tracking-widest uppercase"
-                            style={{ color: themeColor.primary }}
+                    <div className="flex items-center gap-3">
+                        {/* 歌手列表按钮 */}
+                        <button
+                            onClick={onToggleSingerList}
+                            className="group relative px-4 py-2 rounded-full overflow-hidden transition-all hover:scale-105 active:scale-95"
                         >
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
-                            播放列表
-                        </span>
-                    </button>
+                            <div className={`absolute inset-0 transition-colors ${isSingerListOpen ? 'bg-white/10' : 'bg-white/5 group-hover:bg-white/10'}`} />
+                            <div className={`absolute inset-0 rounded-full transition-colors ${isSingerListOpen ? 'border border-cyan-400/30' : 'border border-white/10'}`} />
+                            <span
+                                className={`relative flex items-center gap-2 text-xs font-bold tracking-widest uppercase transition-colors ${isSingerListOpen ? 'text-cyan-300' : ''}`}
+                                style={isSingerListOpen ? undefined : { color: themeColor.primary }}
+                            >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                                歌手
+                            </span>
+                        </button>
+
+                        {/* 播放列表按钮 */}
+                        <button
+                            onClick={onTogglePlaylist}
+                            className="group relative px-4 py-2 rounded-full overflow-hidden transition-all hover:scale-105 active:scale-95"
+                        >
+                            <div className={`absolute inset-0 transition-colors ${isPlaylistOpen ? 'bg-white/10' : 'bg-white/5 group-hover:bg-white/10'}`} />
+                            <div className={`absolute inset-0 rounded-full transition-colors ${isPlaylistOpen ? 'border border-cyan-400/30' : 'border border-white/10'}`} />
+                            <span
+                                className={`relative flex items-center gap-2 text-xs font-bold tracking-widest uppercase transition-colors ${isPlaylistOpen ? 'text-cyan-300' : ''}`}
+                                style={isPlaylistOpen ? undefined : { color: themeColor.primary }}
+                            >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+                                曲目
+                            </span>
+                        </button>
+                    </div>
                 </div>
 
                 {/* 隐藏的音频元素 */}

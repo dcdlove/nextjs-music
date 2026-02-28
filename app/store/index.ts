@@ -21,6 +21,7 @@ export interface Store {
   audioUrl: string
   isPlaying: boolean
   isPlaylistOpen: boolean
+  isSingerListOpen: boolean
 
   // 音频分析数据（用于 DynamicBackground）
   audioData: AudioData
@@ -46,6 +47,7 @@ export interface Store {
   setIsPlaying: (playing: boolean) => void
   togglePlay: () => void
   togglePlaylist: () => void
+  toggleSingerList: () => void
 
   // 音频数据 Actions
   setAudioData: (data: AudioData) => void
@@ -115,6 +117,7 @@ export const useStore = create<Store>()(
       audioUrl: '', // 初始为空，playlist 加载后自动设置默认曲目
       isPlaying: false,
       isPlaylistOpen: false,
+      isSingerListOpen: false,
 
       // 音频分析数据
       audioData: { intensity: 0, bass: 0, high: 0 },
@@ -126,6 +129,7 @@ export const useStore = create<Store>()(
       setIsPlaying: (playing) => set({ isPlaying: playing }),
       togglePlay: () => set((state) => ({ isPlaying: !state.isPlaying })),
       togglePlaylist: () => set((state) => ({ isPlaylistOpen: !state.isPlaylistOpen })),
+      toggleSingerList: () => set((state) => ({ isSingerListOpen: !state.isSingerListOpen })),
 
       // 音频数据和主题色 Actions
       setAudioData: (data) => set({ audioData: data }),
