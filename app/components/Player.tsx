@@ -5,6 +5,15 @@ import CircularVisualizer from './CircularVisualizer';
 import { useThemeColor } from '../hooks/useThemeColor';
 import { useStore } from '../store';
 
+/**
+ * 音频分析数据类型
+ */
+export interface AudioData {
+    intensity: number
+    bass: number
+    high: number
+}
+
 interface PlayerProps {
     currentTrack?: Song;
     audioUrl: string;
@@ -21,6 +30,8 @@ interface PlayerProps {
     onToggleSingerList?: () => void;
     /** 歌手列表是否打开 */
     isSingerListOpen?: boolean;
+    /** 音频数据 ref（用于 DynamicBackground）*/
+    audioDataRef?: React.MutableRefObject<AudioData>;
 }
 
 export default function Player({
@@ -35,15 +46,14 @@ export default function Player({
     isPlaylistOpen,
     onSingerClick,
     onToggleSingerList,
-    isSingerListOpen
+    isSingerListOpen,
+    audioDataRef: externalAudioDataRef
 }: PlayerProps) {
     const audioRef = useRef<HTMLAudioElement>(null);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
-    const [volume, setVolume] = useState(0.8);
 
     // 从 store 获取 actions
-    const setAudioData = useStore(state => state.setAudioData);
     const setThemeColor = useStore(state => state.setThemeColor);
 
     // 根据当前曲目生成主题色
@@ -57,7 +67,8 @@ export default function Player({
     // 音频分析 Refs
     const audioContextRef = useRef<AudioContext | null>(null);
     const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
-    const audioDataRef = useRef({ intensity: 0, bass: 0, high: 0 });
+    // 使用外部传入的 ref 或内部 ref（仅用于本地状态，不触发重渲染）
+    const audioDataRef = externalAudioDataRef || useRef({ intensity: 0, bass: 0, high: 0 });
     const rafIdRef = useRef<number>(0);
 
     // 传递给子组件的分析器状态
@@ -96,7 +107,7 @@ export default function Player({
         }
     }, [isPlaying]);
 
-    // 分析循环（将音频数据同步到 store 供 DynamicBackground 使用）
+    // 分析循环（直接更新 ref，不触发 React 重渲染）
     useEffect(() => {
         if (!isPlaying || !analyserNode) {
             cancelAnimationFrame(rafIdRef.current);
@@ -123,23 +134,19 @@ export default function Player({
                 if (i > highStart) highTotal += value;
             }
 
-            const newAudioData = {
+            // 直接更新 ref，不触发 React 重渲染（性能优化关键）
+            audioDataRef.current = {
                 intensity: total / bufferLength,
                 bass: bassTotal / bassCount,
                 high: highTotal / (bufferLength - highStart)
             };
-
-            // 更新 ref 供本地使用
-            audioDataRef.current = newAudioData;
-            // 同步到 store 供 DynamicBackground 使用
-            setAudioData(newAudioData);
 
             rafIdRef.current = requestAnimationFrame(analyze);
         };
 
         analyze();
         return () => cancelAnimationFrame(rafIdRef.current);
-    }, [isPlaying, analyserNode, setAudioData]);
+    }, [isPlaying, analyserNode, audioDataRef]);
 
     useEffect(() => {
         if (audioRef.current) {

@@ -5,15 +5,6 @@ import { musicApi, ApiError } from '../services/api'
 import { ThemeColor } from '../hooks/useThemeColor'
 
 /**
- * 音频分析数据类型
- */
-export interface AudioData {
-  intensity: number
-  bass: number
-  high: number
-}
-
-/**
  * Store 类型定义
  */
 export interface Store {
@@ -22,9 +13,6 @@ export interface Store {
   isPlaying: boolean
   isPlaylistOpen: boolean
   isSingerListOpen: boolean
-
-  // 音频分析数据（用于 DynamicBackground）
-  audioData: AudioData
 
   // 主题色（用于 DynamicBackground）
   themeColor: ThemeColor | null
@@ -48,9 +36,6 @@ export interface Store {
   togglePlay: () => void
   togglePlaylist: () => void
   toggleSingerList: () => void
-
-  // 音频数据 Actions
-  setAudioData: (data: AudioData) => void
   setThemeColor: (color: ThemeColor | null) => void
 
   // 播放列表 Actions
@@ -119,9 +104,6 @@ export const useStore = create<Store>()(
       isPlaylistOpen: false,
       isSingerListOpen: false,
 
-      // 音频分析数据
-      audioData: { intensity: 0, bass: 0, high: 0 },
-
       // 主题色
       themeColor: null,
 
@@ -130,9 +112,6 @@ export const useStore = create<Store>()(
       togglePlay: () => set((state) => ({ isPlaying: !state.isPlaying })),
       togglePlaylist: () => set((state) => ({ isPlaylistOpen: !state.isPlaylistOpen })),
       toggleSingerList: () => set((state) => ({ isSingerListOpen: !state.isSingerListOpen })),
-
-      // 音频数据和主题色 Actions
-      setAudioData: (data) => set({ audioData: data }),
       setThemeColor: (color) => set({ themeColor: color }),
 
       // ===== 播放列表状态 =====

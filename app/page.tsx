@@ -78,8 +78,6 @@ export default function Home() {
     searchTerm,
     sortMode,
     likedSongs,
-    // 音频数据（用于 DynamicBackground）
-    audioData,
     themeColor,
     // Actions
     setIsPlaying,
@@ -102,12 +100,8 @@ export default function Home() {
   const [singerSearchTerm, setSingerSearchTerm] = useState('')
 
   // 创建 audioDataRef 供 DynamicBackground 使用
-  const audioDataRef = useRef(audioData)
-
-  // 同步 audioData 到 ref
-  useEffect(() => {
-    audioDataRef.current = audioData
-  }, [audioData])
+  // 注意：audioData 现在由 Player 组件内部管理，通过 ref 传递
+  const audioDataRef = useRef({ intensity: 0, bass: 0, high: 0 })
 
   // 焦点管理
   useFocusTrap(isPlaylistOpen, playlistDrawerRef)
@@ -295,6 +289,7 @@ export default function Home() {
             onSingerClick={handleSingerClick}
             onToggleSingerList={toggleSingerList}
             isSingerListOpen={isSingerListOpen}
+            audioDataRef={audioDataRef}
           />
         </AudioErrorBoundary>
       </div>
