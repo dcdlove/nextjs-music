@@ -96,7 +96,8 @@ export const shuffleArray = <T>(array: T[]): T[] => {
  */
 export const useStore = create<Store>()(
   devtools(
-    (set, get) => ({
+    (set, get) => {
+      return {
       // ===== 播放器状态 =====
 
       audioUrl: '', // 初始为空，playlist 加载后自动设置默认曲目
@@ -202,7 +203,7 @@ export const useStore = create<Store>()(
         const decodedUrl = decodeURIComponent(url)
         return get().likedSongs.includes(decodedUrl)
       },
-    }),
+    }},
     {
       name: 'music-player-store',
       enabled: process.env.NODE_ENV === 'development',
