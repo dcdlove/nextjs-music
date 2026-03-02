@@ -1,4 +1,5 @@
 import React, { memo, useMemo, useState, useCallback, useRef, useEffect } from 'react'
+import { parseSingers } from '../utils/singerParser'
 
 /**
  * 歌手信息接口
@@ -14,17 +15,23 @@ interface SingerInfo {
 
 /**
  * 从歌曲列表提取歌手信息
+ * 支持多歌手分隔：& 、，, and 和 与
  */
 function extractSingers(songs: Array<{ singer: string; title: string; url: string }>): SingerInfo[] {
   const singerMap = new Map<string, Array<{ title: string; url: string }>>()
 
   songs.forEach(song => {
-    const existing = singerMap.get(song.singer)
-    if (existing) {
-      existing.push({ title: song.title, url: song.url })
-    } else {
-      singerMap.set(song.singer, [{ title: song.title, url: song.url }])
-    }
+    // 解析歌手字符串，拆分为独立歌手
+    const individualSingers = parseSingers(song.singer)
+
+    individualSingers.forEach(singerName => {
+      const existing = singerMap.get(singerName)
+      if (existing) {
+        existing.push({ title: song.title, url: song.url })
+      } else {
+        singerMap.set(singerName, [{ title: song.title, url: song.url }])
+      }
+    })
   })
 
   return Array.from(singerMap.entries())
@@ -80,10 +87,21 @@ function SingerListComponent({
     )
   }, [allSingers, localSearchTerm])
 
-  // 当前播放歌手的索引
+  // 当前播放歌手的索引（支持多歌手匹配）
   const currentSingerIndex = useMemo(() => {
-    return filteredSingers.findIndex(s => s.name === currentSinger)
+    if (!currentSinger) return -1
+    // 解析当前歌手字符串，获取所有独立歌手
+    const currentSingers = parseSingers(currentSinger)
+    // 找到第一个匹配的歌手索引
+    return filteredSingers.findIndex(s => currentSingers.includes(s.name))
   }, [filteredSingers, currentSinger])
+
+  // 判断某个歌手是否为当前播放歌手（支持多歌手匹配）
+  const isCurrentSingerPlaying = useCallback((singerName: string, currentSingerStr?: string): boolean => {
+    if (!currentSingerStr) return false
+    const currentSingers = parseSingers(currentSingerStr)
+    return currentSingers.includes(singerName)
+  }, [])
 
   // 同步外部搜索词
   useEffect(() => {
@@ -194,7 +212,7 @@ function SingerListComponent({
         tabIndex={0}
       >
         {filteredSingers.map((singer, index) => {
-          const isCurrentSinger = currentSinger === singer.name
+          const isCurrentSinger = isCurrentSingerPlaying(singer.name, currentSinger)
           const isFocused = focusedIndex === index
 
           return (
