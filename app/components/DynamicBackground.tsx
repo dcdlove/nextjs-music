@@ -1,4 +1,6 @@
 import React, { useEffect, useState, useRef, memo } from 'react';
+import { LyricsDisplay } from './LyricsDisplay';
+import { useStore } from '../store';
 
 interface DynamicBackgroundProps {
   isPlaying: boolean;
@@ -12,7 +14,7 @@ interface DynamicBackgroundProps {
     primary: string;
     primaryRgb: string;
     gradient: string;
-    analogous1: string; // 基于提供的代码片段添加此属性
+    analogous1: string;
   };
 }
 
@@ -67,6 +69,10 @@ function DynamicBackgroundComponent({ isPlaying, audioDataRef, vinylPosition, th
   const lastRippleTime = useRef<number>(0);
   const lastIntensity = useRef<number>(0);
   const beatCooldown = useRef<number>(0);
+
+  // 从 store 获取歌词状态
+  const lyrics = useStore(state => state.lyrics);
+  const currentLyricIndex = useStore(state => state.currentLyricIndex);
 
   // 获取符号的辅助函数
   const getSymbol = (noteName: string) => {
@@ -333,6 +339,16 @@ function DynamicBackgroundComponent({ isPlaying, audioDataRef, vinylPosition, th
 
       {/* Overlay Texture */}
       <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20" />
+
+      {/* 歌词显示层 */}
+      {lyrics && lyrics.syncedLyrics.length > 0 && (
+        <LyricsDisplay
+          lyrics={lyrics.syncedLyrics}
+          currentIndex={currentLyricIndex}
+          isPlaying={isPlaying}
+          themeColor={themeColor}
+        />
+      )}
 
       <style jsx>{`
         @keyframes fly-to-destination {

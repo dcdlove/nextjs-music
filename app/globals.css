@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 :root {
@@ -466,4 +467,162 @@ body {
 
 .animate-shuffle {
   animation: shuffle-fly 0.6s ease-in-out;
+}
+
+/* ========================================
+   歌词显示动画 (Lyrics Display Animations)
+   Apple Music 风格 - 沉浸式歌词体验
+   ======================================== */
+
+/* 歌词发光动画 */
+@keyframes lyrics-glow {
+  0%, 100% {
+    filter: brightness(1);
+    transform: scale(1);
+  }
+  50% {
+    filter: brightness(1.1);
+    transform: scale(1.02);
+  }
+}
+
+.animate-lyrics-glow {
+  animation: lyrics-glow 2s ease-in-out infinite;
+}
+
+/* 歌词脉冲背景 */
+@keyframes lyrics-pulse {
+  0%, 100% {
+    opacity: 0.08;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.12;
+    transform: scale(1.05);
+  }
+}
+
+/* 歌词滚动容器 */
+.lyrics-scroll-container {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
+}
+
+.lyrics-scroll-container::-webkit-scrollbar {
+  display: none;
+}
+
+/* 歌词激活状态 - 添加微妙的呼吸效果 */
+.lyrics-active .lyrics-content {
+  animation: lyrics-breathe 4s ease-in-out infinite;
+}
+
+@keyframes lyrics-breathe {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+/* 歌词行样式 */
+.lyrics-line {
+  will-change: transform, opacity, filter;
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* 歌词渐变遮罩 (上下渐变) */
+.lyrics-mask-gradient {
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 15%,
+    black 85%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 15%,
+    black 85%,
+    transparent 100%
+  );
+}
+
+/* 歌词字体选择 - 优雅的显示字体 */
+.lyrics-content {
+  font-family: 'Noto Serif SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', serif;
+}
+
+/* 英文歌词使用更现代的字体 */
+.lyrics-content:lang(en) {
+  font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* 歌词浮动动画 - 废弃旧的 */
+@keyframes lyrics-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.animate-lyrics-float {
+  animation: lyrics-float 4s ease-in-out infinite;
+}
+
+/* 歌词淡入动画 */
+@keyframes lyrics-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-lyrics-fade-in {
+  animation: lyrics-fade-in 0.5s ease-out forwards;
+}
+
+/* 歌词高亮脉冲 */
+@keyframes lyrics-highlight-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.02);
+    opacity: 0.9;
+  }
+}
+
+.animate-lyrics-pulse {
+  animation: lyrics-highlight-pulse 2s ease-in-out infinite;
+}
+
+/* 歌词行过渡效果 */
+.lyrics-line {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.lyrics-line-current {
+  transform: scale(1.05);
+  font-weight: 700;
+}
+
+.lyrics-line-past {
+  opacity: 0.4;
+}
+
+.lyrics-line-future {
+  opacity: 0.6;
 }

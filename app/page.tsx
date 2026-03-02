@@ -79,6 +79,8 @@ export default function Home() {
     sortMode,
     likedSongs,
     themeColor,
+    lyrics,
+    currentLyricIndex,
     // Actions
     setIsPlaying,
     togglePlaylist,
@@ -90,6 +92,8 @@ export default function Home() {
     setRandomList,
     playNext,
     playPrev,
+    loadPlayerState,
+    fetchLyrics,
   } = useStore()
 
   // 抽屉容器 refs
@@ -111,6 +115,18 @@ export default function Home() {
   useEffect(() => {
     fetchPlaylist()
   }, [fetchPlaylist])
+
+  // 状态恢复：页面加载时恢复播放状态
+  useEffect(() => {
+    const savedState = loadPlayerState()
+    if (savedState) {
+      // 恢复播放进度（但不自动播放）
+      useStore.getState().setAudioUrl(savedState.audioUrl)
+      useStore.getState().setCurrentTime(savedState.currentTime)
+      useStore.getState().setVolume(savedState.volume)
+      // 不恢复 isPlaying，避免自动播放
+    }
+  }, [loadPlayerState])
 
   // 设置默认曲目（黄霄雲 - 光之黎明）
   const setDefaultTrack = useCallback(() => {
@@ -167,6 +183,13 @@ export default function Home() {
     if (!playlist.length || !audioUrl) return undefined
     return playlist.find(item => decodeURIComponent(item.url) === audioUrl)
   }, [playlist, audioUrl])
+
+  // 当曲目变化时获取歌词
+  useEffect(() => {
+    if (currentTrack) {
+      fetchLyrics(currentTrack.singer, currentTrack.title)
+    }
+  }, [currentTrack?.singer, currentTrack?.title, fetchLyrics])
 
   // 播放指定曲目
   const playTrack = useCallback((url: string) => {

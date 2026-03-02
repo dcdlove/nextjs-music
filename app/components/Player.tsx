@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Song } from '../types';
 import CircularProgress from './CircularProgress';
 import CircularVisualizer from './CircularVisualizer';
@@ -55,6 +55,13 @@ export default function Player({
 
     // 从 store 获取 actions
     const setThemeColor = useStore(state => state.setThemeColor);
+    const fetchLyrics = useStore(state => state.fetchLyrics);
+    const updateCurrentLyricIndex = useStore(state => state.updateCurrentLyricIndex);
+    const savePlayerState = useStore(state => state.savePlayerState);
+    const setCurrentTimeToStore = useStore(state => state.setCurrentTime);
+
+    // 定期保存播放状态的 ref
+    const lastSaveTimeRef = useRef<number>(0);
 
     // 根据当前曲目生成主题色
     const themeColor = useThemeColor(currentTrack ? `${currentTrack.singer}-${currentTrack.title}` : 'default');
@@ -63,6 +70,13 @@ export default function Player({
     useEffect(() => {
         setThemeColor(themeColor);
     }, [themeColor, setThemeColor]);
+
+    // 当曲目变化时获取歌词
+    useEffect(() => {
+        if (currentTrack?.singer && currentTrack?.title) {
+            fetchLyrics(currentTrack.singer, currentTrack.title);
+        }
+    }, [currentTrack?.singer, currentTrack?.title, fetchLyrics]);
 
     // 音频分析 Refs
     const audioContextRef = useRef<AudioContext | null>(null);
@@ -170,7 +184,21 @@ export default function Player({
 
     const handleTimeUpdate = () => {
         if (audioRef.current) {
-            setCurrentTime(audioRef.current.currentTime);
+            const time = audioRef.current.currentTime;
+            setCurrentTime(time);
+
+            // 更新歌词索引
+            updateCurrentLyricIndex(time);
+
+            // 同步到 store
+            setCurrentTimeToStore(time);
+
+            // 每 5 秒保存一次播放状态
+            const now = Date.now();
+            if (now - lastSaveTimeRef.current > 5000) {
+                savePlayerState();
+                lastSaveTimeRef.current = now;
+            }
         }
     };
 
@@ -228,8 +256,8 @@ export default function Player({
                     {/* 2. 唱片主体结构 */}
                     <div className="relative w-[320px] h-[320px] sm:w-[420px] sm:h-[420px] flex items-center justify-center">
 
-                        {/* A. 外层可视化光环 (在进度条外围) */}
-                        <div className="absolute inset-[-300px]  z-0 opacity-10">
+                        {/* A. 外层可视化光环 */}
+                        <div className="absolute inset-[-300px] z-0 opacity-10">
                             <CircularVisualizer
                                 analyser={analyserNode}
                                 isPlaying={isPlaying}
@@ -237,18 +265,7 @@ export default function Player({
                             />
                         </div>
 
-                        {/* B. 进度光环 (激光质感) */}
-                        <div className="absolute inset-[-10px] z-10">
-                            <CircularProgress
-                                radius={isSmallScreen ? 170 : 220}
-                                stroke={4}
-                                progress={progress}
-                                color={themeColor.primary}
-                                onChange={(val) => handleSeek((val / 100) * duration)}
-                            />
-                        </div>
-
-                        {/* C. 黑胶唱片 (玻璃态 + 纹理) */}
+                        {/* B. 黑胶唱片 (玻璃态 + 纹理) */}
                         <div
                             className="absolute inset-0 rounded-full overflow-hidden shadow-2xl border border-white/10 backdrop-blur-md"
                             style={{
@@ -265,9 +282,9 @@ export default function Player({
                                 className="absolute inset-0 opacity-40 mix-blend-overlay"
                                 style={{
                                     background: `repeating-radial-gradient(
-                                        #333 0, 
-                                        #333 1px, 
-                                        transparent 2px, 
+                                        #333 0,
+                                        #333 1px,
+                                        transparent 2px,
                                         transparent 4px
                                     )`
                                 }}
@@ -292,7 +309,6 @@ export default function Player({
                                         className="w-full h-full bg-cover bg-center transition-transform duration-700 hover:scale-110"
                                         style={{
                                             background: themeColor.gradient,
-                                            // 如果有真实封面图，这里应该是 backgroundImage: `url(${currentTrack.cover})`
                                         }}
                                     />
                                     {/* 中心孔 */}
@@ -301,21 +317,37 @@ export default function Player({
                             </div>
                         </div>
 
-                        {/* D. 交互覆盖层 (悬停显示控制) */}
-                        <div className="absolute inset-0 flex items-center justify-center z-30 transition-all duration-500 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-hover:backdrop-blur-[2px]">
-                            <div className="flex items-center gap-6 sm:gap-10 transform scale-100 sm:scale-90 sm:group-hover:scale-100 transition-transform duration-300">
+                        {/* C. 进度圆环 + 播放控制 (合并为同一层级) */}
+                        <div className="absolute inset-0 flex items-center justify-center z-20">
+                            {/* 进度圆环作为背景层 */}
+                            <div className="absolute inset-0 pointer-events-auto">
+                                <CircularProgress
+                                    radius={isSmallScreen ? 160 : 210}
+                                    stroke={4}
+                                    progress={progress}
+                                    color={themeColor.primary}
+                                    onChange={(val) => handleSeek((val / 100) * duration)}
+                                />
+                            </div>
+
+                            {/* 播放控制按钮 - 始终显示在移动端，悬停显示在桌面端 */}
+                            <div className={`
+                                relative flex items-center gap-6 sm:gap-10
+                                transition-all duration-500
+                                ${isSmallScreen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}
+                            `}>
                                 {/* 上一曲 */}
                                 <button
                                     onClick={(e) => { e.stopPropagation(); onPrev(); }}
-                                    className="p-4 rounded-full text-white/80 hover:text-white hover:bg-white/10 backdrop-blur-md transition-all active:scale-90"
+                                    className="p-4 rounded-full text-white/80 hover:text-white hover:bg-white/10 transition-all active:scale-90"
                                 >
                                     <svg className="w-8 h-8 sm:w-10 sm:h-10 drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" /></svg>
                                 </button>
 
-                                {/* 播放/暂停 (巨大图标) */}
+                                {/* 播放/暂停 */}
                                 <button
                                     onClick={(e) => { e.stopPropagation(); setIsPlaying(!isPlaying); }}
-                                    className="w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 text-white shadow-[0_0_30px_rgba(255,255,255,0.2)] transition-all duration-300 hover:scale-110 active:scale-95"
+                                    className="w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center rounded-full hover:bg-white/5 text-white transition-all duration-300 hover:scale-110 active:scale-95"
                                 >
                                     {isPlaying ? (
                                         <svg className="w-10 h-10 sm:w-12 sm:h-12 fill-current drop-shadow-lg" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" /></svg>
@@ -327,7 +359,7 @@ export default function Player({
                                 {/* 下一曲 */}
                                 <button
                                     onClick={(e) => { e.stopPropagation(); onNext(); }}
-                                    className="p-4 rounded-full text-white/80 hover:text-white hover:bg-white/10 backdrop-blur-md transition-all active:scale-90"
+                                    className="p-4 rounded-full text-white/80 hover:text-white hover:bg-white/10 transition-all active:scale-90"
                                 >
                                     <svg className="w-8 h-8 sm:w-10 sm:h-10 drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" /></svg>
                                 </button>
