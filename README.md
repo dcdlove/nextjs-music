@@ -12,7 +12,9 @@
 - ❤️ **收藏功能** - localStorage 持久化收藏列表
 - 🔀 **多种排序** - 默认/随机/收藏三种播放模式
 - 🔍 **快速搜索** - 按歌手名或歌曲名实时过滤
+- 👤 **歌手列表** - 按歌手分类浏览，支持多歌手解析
 - 📱 **响应式设计** - 完美适配移动端和桌面端
+- ⚡ **高性能** - 虚拟化列表，流畅滚动体验
 
 ## 技术栈
 
@@ -23,6 +25,7 @@
 | 语言 | TypeScript 5 |
 | 样式 | Tailwind CSS 4 + 自定义 CSS 动画 |
 | 状态 | Zustand 5 |
+| 虚拟化 | @tanstack/react-virtual |
 | 字体 | Playfair Display + Plus Jakarta Sans + JetBrains Mono |
 | 音频 | Web Audio API (音频分析 + 可视化) |
 | 测试 | Vitest + React Testing Library |
@@ -75,11 +78,19 @@ nextjs-music/
 │   │   └── res2/           # jsDelivr CDN 代理接口
 │   ├── components/         # UI 组件
 │   │   ├── Player.tsx      # 核心播放器
+│   │   ├── SongList.tsx    # 歌曲列表 (虚拟化)
+│   │   ├── SingerList.tsx  # 歌手列表 (虚拟化)
 │   │   ├── DynamicBackground.tsx  # 动态背景
 │   │   └── ...
 │   ├── hooks/              # 自定义 Hooks
+│   │   ├── audio/          # 音频相关 Hooks
+│   │   └── useThemeColor.ts # 主题色生成
 │   ├── services/           # API 服务层
+│   │   └── api/            # 音乐/歌词 API
 │   ├── store/              # Zustand 状态管理
+│   ├── utils/              # 工具函数
+│   │   ├── singerParser.ts # 歌手名解析
+│   │   └── performanceLogger.ts # 性能分析
 │   └── page.tsx            # 主页面
 ├── public/
 │   └── data.json           # 歌曲元数据

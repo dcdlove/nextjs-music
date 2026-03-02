@@ -11,7 +11,8 @@
 | 语言 | TypeScript 5 |
 | 样式 | Tailwind CSS 4 + 自定义 CSS 动画 |
 | 状态 | Zustand 5 |
-| 字体 | Geist Sans + Geist Mono (next/font) |
+| 虚拟化 | @tanstack/react-virtual |
+| 字体 | Playfair Display + Plus Jakarta Sans + JetBrains Mono |
 | 音频 | Web Audio API (音频分析 + 可视化) |
 | 测试 | Vitest + React Testing Library |
 | 部署 | Vercel |
@@ -30,7 +31,9 @@ nextjs-music/
 │   │   ├── PlayerControls.tsx        # 播放控制按钮
 │   │   ├── TrackInfo.tsx             # 歌曲信息展示
 │   │   ├── Controls.tsx              # 搜索框 + 排序模式切换
-│   │   ├── SongList.tsx              # 歌曲列表 (支持收藏)
+│   │   ├── SongList.tsx              # 歌曲列表 (虚拟化 + 收藏)
+│   │   ├── SingerList.tsx            # 歌手列表 (虚拟化)
+│   │   ├── LyricsDisplay.tsx         # 歌词显示组件
 │   │   ├── CircularProgress.tsx      # 圆形进度条 (可拖拽)
 │   │   ├── CircularVisualizer.tsx    # 环形音频可视化
 │   │   ├── DynamicBackground.tsx     # 动态背景 (随节拍律动)
@@ -45,11 +48,16 @@ nextjs-music/
 │   │       └── useAudioPlayer.ts     # 播放器控制
 │   ├── services/                     # 服务层
 │   │   ├── index.ts                  # 导出入口
+│   │   ├── lyricsCache.ts            # 歌词缓存
 │   │   └── api/                      # API 服务
 │   │       ├── client.ts             # HTTP 客户端
-│   │       └── music.ts              # 音乐 API
+│   │       ├── music.ts              # 音乐 API
+│   │       └── lyrics.ts             # 歌词 API
 │   ├── store/                        # 状态管理
 │   │   └── index.ts                  # Zustand Store
+│   ├── utils/                        # 工具函数
+│   │   ├── singerParser.ts           # 歌手名解析 (支持 & 分隔)
+│   │   └── performanceLogger.ts      # 性能分析工具
 │   ├── page.tsx                      # 主页面
 │   ├── layout.tsx                    # 根布局
 │   ├── types.ts                      # TypeScript 类型定义
@@ -97,14 +105,21 @@ npm run test:coverage
 - 歌曲搜索 (按歌手名或歌曲名)
 - 三种排序模式: `default` (默认) / `random` (随机) / `liked` (收藏)
 - 收藏功能 (localStorage 持久化)
+- 虚拟化列表 (@tanstack/react-virtual)
 
-### 3. 视觉效果
+### 3. 歌手列表
+- 按歌手分类浏览歌曲
+- 多歌手解析 (支持 & 分隔符，如 "歌手A&歌手B")
+- 点击歌手名快速筛选
+- 虚拟化列表优化滚动性能
+
+### 4. 视觉效果
 - 动态主题色: 根据当前曲目生成独特渐变配色
 - 黑胶唱片: 3D 悬浮效果 + 旋转动画
 - 音频可视化: 实时频谱分析 + 环形可视化器
 - 动态背景: 随音乐低音节拍律动
 
-### 4. 响应式适配
+### 5. 响应式适配
 - 移动端: 使用 API 代理 (解决跨域问题)
 - PC 端: 直连 jsDelivr CDN
 
@@ -177,6 +192,8 @@ jsDelivr CDN 代理接口，用于移动端。
 - 使用 `memo` + 自定义比较函数优化渲染
 - 使用 `useCallback` 包装事件处理函数
 - 大型组件已拆分为子组件 (VinylDisc, PlayerControls, TrackInfo)
+- 列表虚拟化 (@tanstack/react-virtual) 优化大列表性能
+- 音频数据使用 ref 而非 state，避免高频更新触发重渲染
 
 ### 6. 错误处理
 - `ErrorBoundary` 捕获组件渲染错误
@@ -205,4 +222,4 @@ jsDelivr CDN 代理接口，用于移动端。
 
 ---
 
-*最后更新: 2026年2月*
+*最后更新: 2026年3月*
