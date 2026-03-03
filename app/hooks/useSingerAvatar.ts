@@ -1,10 +1,9 @@
 'use client'
 
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import {
   createSingerAvatarService,
   SingerAvatarResult,
-  SingerAvatarService,
   createMemoryCache
 } from '../services/avatar'
 
@@ -58,13 +57,6 @@ export function useSingerAvatars(singerNames: string[]) {
   }, [singerNames.join(',')]) // 依赖歌手名列表
 
   return { avatars, loading }
-}
-
-/**
- * 获取头像服务的 Hook（用于高级用法）
- */
-export function useAvatarService(): SingerAvatarService {
-  return globalService
 }
 
 /**
