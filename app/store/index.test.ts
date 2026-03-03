@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { act } from '@testing-library/react'
-import { useStore, shuffleArray } from './index'
+import { useStore } from './index'
 import { Lyrics } from '../types'
 
 // 模拟 lyricsApi
@@ -22,31 +22,6 @@ vi.mock('../services/lyricsCache', () => ({
   LYRICS_CACHE_KEY: 'lyricsCache',
 }))
 
-describe('shuffleArray', () => {
-  it('返回新数组（不修改原数组）', () => {
-    const original = [1, 2, 3, 4, 5]
-    const shuffled = shuffleArray(original)
-
-    expect(original).toEqual([1, 2, 3, 4, 5])
-    expect(shuffled).not.toBe(original)
-  })
-
-  it('保留所有元素', () => {
-    const original = [1, 2, 3, 4, 5]
-    const shuffled = shuffleArray(original)
-
-    expect(shuffled.sort()).toEqual(original.sort())
-  })
-
-  it('处理空数组', () => {
-    expect(shuffleArray([])).toEqual([])
-  })
-
-  it('处理单元素数组', () => {
-    expect(shuffleArray([1])).toEqual([1])
-  })
-})
-
 describe('useStore', () => {
   beforeEach(() => {
     // 重置 store 到初始状态
@@ -55,7 +30,6 @@ describe('useStore', () => {
       isPlaying: false,
       isPlaylistOpen: false,
       playlist: [],
-      randomList: [],
       isLoading: false,
       error: null,
       searchTerm: '',
@@ -213,10 +187,10 @@ describe('useStore', () => {
 
     it('setSortMode 更新排序模式', () => {
       act(() => {
-        useStore.getState().setSortMode('random')
+        useStore.getState().setSortMode('liked')
       })
 
-      expect(useStore.getState().sortMode).toBe('random')
+      expect(useStore.getState().sortMode).toBe('liked')
     })
   })
 

@@ -55,13 +55,14 @@ export default function Player({
 
     // 从 store 获取 actions
     const setThemeColor = useStore(state => state.setThemeColor);
-    const fetchLyrics = useStore(state => state.fetchLyrics);
     const updateCurrentLyricIndex = useStore(state => state.updateCurrentLyricIndex);
     const savePlayerState = useStore(state => state.savePlayerState);
     const setCurrentTimeToStore = useStore(state => state.setCurrentTime);
 
     // 定期保存播放状态的 ref
     const lastSaveTimeRef = useRef<number>(0);
+    // 节流同步到全局状态，避免高频触发全局重渲染
+    const lastStoreSyncTimeRef = useRef<number>(-1);
 
     // 根据当前曲目生成主题色
     const themeColor = useThemeColor(currentTrack ? `${currentTrack.singer}-${currentTrack.title}` : 'default');
@@ -70,13 +71,6 @@ export default function Player({
     useEffect(() => {
         setThemeColor(themeColor);
     }, [themeColor, setThemeColor]);
-
-    // 当曲目变化时获取歌词
-    useEffect(() => {
-        if (currentTrack?.singer && currentTrack?.title) {
-            fetchLyrics(currentTrack.singer, currentTrack.title);
-        }
-    }, [currentTrack?.singer, currentTrack?.title, fetchLyrics]);
 
     // 音频分析 Refs
     const audioContextRef = useRef<AudioContext | null>(null);
@@ -190,8 +184,14 @@ export default function Player({
             // 更新歌词索引
             updateCurrentLyricIndex(time);
 
-            // 同步到 store
-            setCurrentTimeToStore(time);
+            // 节流同步到 store（每 0.5 秒一次）
+            if (
+                lastStoreSyncTimeRef.current < 0 ||
+                Math.abs(time - lastStoreSyncTimeRef.current) >= 0.5
+            ) {
+                setCurrentTimeToStore(time);
+                lastStoreSyncTimeRef.current = time;
+            }
 
             // 每 5 秒保存一次播放状态
             const now = Date.now();
@@ -212,6 +212,8 @@ export default function Player({
         if (audioRef.current) {
             audioRef.current.currentTime = time;
             setCurrentTime(time);
+            setCurrentTimeToStore(time);
+            lastStoreSyncTimeRef.current = time;
         }
     };
 

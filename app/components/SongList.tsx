@@ -18,11 +18,13 @@ interface SongItemProps {
  * 高亮搜索关键词（使用缓存优化）
  */
 const HighlightText = memo(({ text, searchTerm }: { text: string; searchTerm: string }) => {
+  const normalizedTerm = searchTerm.trim().toLowerCase()
+
   // 缓存正则表达式
   const regex = useMemo(() => {
-    if (!searchTerm.trim()) return null
-    return new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi')
-  }, [searchTerm])
+    if (!normalizedTerm) return null
+    return new RegExp(`(${normalizedTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi')
+  }, [normalizedTerm])
 
   // 缓存分割结果
   const parts = useMemo(() => {
@@ -37,7 +39,7 @@ const HighlightText = memo(({ text, searchTerm }: { text: string; searchTerm: st
   return (
     <>
       {parts.map((part, i) =>
-        regex.test(part) ? (
+        part.toLowerCase() === normalizedTerm ? (
           <mark key={i} className="bg-cyan-400/30 text-cyan-200 px-0.5 rounded">
             {part}
           </mark>
@@ -200,6 +202,7 @@ interface SongListProps {
   onLike: (url: string) => void
   likedSongs: Set<string>
   searchTerm?: string
+  isVisible?: boolean
 }
 
 /**
@@ -212,14 +215,11 @@ export default function SongList({
   onPlay,
   onLike,
   likedSongs,
-  searchTerm = ''
+  searchTerm = '',
+  isVisible = true
 }: SongListProps) {
   const [focusedIndex, setFocusedIndex] = useState<number>(-1)
   const listRef = useRef<HTMLDivElement>(null)
-
-  // 滚动状态追踪（用于优化快速滚动）
-  const isScrollingRef = useRef(false)
-  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // 找到当前播放歌曲的索引
   const currentPlayingIndex = useMemo(() => {
@@ -233,26 +233,6 @@ export default function SongList({
     estimateSize: () => 56,
     overscan: 3, // 减少 overscan 以优化快速滚动
   })
-
-  // 滚动事件处理
-  const handleScroll = useCallback(() => {
-    isScrollingRef.current = true
-    if (scrollTimeoutRef.current) {
-      clearTimeout(scrollTimeoutRef.current)
-    }
-    scrollTimeoutRef.current = setTimeout(() => {
-      isScrollingRef.current = false
-    }, 150)
-  }, [])
-
-  // 清理定时器
-  useEffect(() => {
-    return () => {
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current)
-      }
-    }
-  }, [])
 
   // 虚拟化后的项目
   const virtualItems = virtualizer.getVirtualItems()
@@ -295,10 +275,10 @@ export default function SongList({
 
   // 跳转到当前播放歌曲
   useEffect(() => {
-    if (currentPlayingIndex >= 0) {
-      virtualizer.scrollToIndex(currentPlayingIndex, { align: 'center', behavior: 'smooth' })
+    if (isVisible && currentPlayingIndex >= 0) {
+      virtualizer.scrollToIndex(currentPlayingIndex, { align: 'auto' })
     }
-  }, [currentPlayingIndex, virtualizer])
+  }, [isVisible, currentPlayingIndex, virtualizer])
 
   return (
     <div className="w-full h-full flex flex-col">
@@ -318,7 +298,6 @@ export default function SongList({
         className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent hover:scrollbar-thumb-white/20 pr-2 mt-2 focus:outline-none"
         onKeyDown={handleKeyDown}
         tabIndex={0}
-        onScroll={handleScroll}
       >
         {songs.length > 0 && (
           <div

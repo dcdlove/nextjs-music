@@ -7,12 +7,18 @@ import SongList from './components/SongList'
 import SingerList from './components/SingerList'
 import DynamicBackground from './components/DynamicBackground'
 import { AudioErrorBoundary } from './components/ErrorBoundary'
-import { useStore, shuffleArray } from './store'
+import { useStore } from './store'
 
 /**
  * 自定义 Hook：键盘快捷键
  */
 function useKeyboardShortcuts(handlers: Record<string, () => void>, enabled = true) {
+  const handlersRef = useRef(handlers)
+
+  useEffect(() => {
+    handlersRef.current = handlers
+  }, [handlers])
+
   useEffect(() => {
     if (!enabled) return
 
@@ -23,7 +29,7 @@ function useKeyboardShortcuts(handlers: Record<string, () => void>, enabled = tr
       }
 
       const key = e.key.toLowerCase()
-      const handler = handlers[key]
+      const handler = handlersRef.current[key]
 
       if (handler) {
         e.preventDefault()
@@ -33,7 +39,7 @@ function useKeyboardShortcuts(handlers: Record<string, () => void>, enabled = tr
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [handlers, enabled])
+  }, [enabled])
 }
 
 /**
@@ -65,36 +71,31 @@ function useFocusTrap(isOpen: boolean, containerRef: React.RefObject<HTMLElement
 }
 
 export default function Home() {
-  // 从 store 获取状态和 actions
-  const {
-    audioUrl,
-    isPlaying,
-    isPlaylistOpen,
-    isSingerListOpen,
-    playlist,
-    randomList,
-    isLoading,
-    error,
-    searchTerm,
-    sortMode,
-    likedSongs,
-    themeColor,
-    lyrics,
-    currentLyricIndex,
-    // Actions
-    setIsPlaying,
-    togglePlaylist,
-    toggleSingerList,
-    fetchPlaylist,
-    setSearchTerm,
-    setSortMode,
-    toggleLike,
-    setRandomList,
-    playNext,
-    playPrev,
-    loadPlayerState,
-    fetchLyrics,
-  } = useStore()
+  // 状态：按需订阅，避免高频字段导致整页重渲染
+  const audioUrl = useStore(state => state.audioUrl)
+  const isPlaying = useStore(state => state.isPlaying)
+  const isPlaylistOpen = useStore(state => state.isPlaylistOpen)
+  const isSingerListOpen = useStore(state => state.isSingerListOpen)
+  const playlist = useStore(state => state.playlist)
+  const isLoading = useStore(state => state.isLoading)
+  const error = useStore(state => state.error)
+  const searchTerm = useStore(state => state.searchTerm)
+  const sortMode = useStore(state => state.sortMode)
+  const likedSongs = useStore(state => state.likedSongs)
+  const themeColor = useStore(state => state.themeColor)
+
+  // Actions
+  const setIsPlaying = useStore(state => state.setIsPlaying)
+  const togglePlaylist = useStore(state => state.togglePlaylist)
+  const toggleSingerList = useStore(state => state.toggleSingerList)
+  const fetchPlaylist = useStore(state => state.fetchPlaylist)
+  const setSearchTerm = useStore(state => state.setSearchTerm)
+  const setSortMode = useStore(state => state.setSortMode)
+  const toggleLike = useStore(state => state.toggleLike)
+  const playNext = useStore(state => state.playNext)
+  const playPrev = useStore(state => state.playPrev)
+  const loadPlayerState = useStore(state => state.loadPlayerState)
+  const fetchLyrics = useStore(state => state.fetchLyrics)
 
   // 抽屉容器 refs
   const playlistDrawerRef = useRef<HTMLDivElement>(null)
@@ -106,6 +107,7 @@ export default function Home() {
   // 创建 audioDataRef 供 DynamicBackground 使用
   // 注意：audioData 现在由 Player 组件内部管理，通过 ref 传递
   const audioDataRef = useRef({ intensity: 0, bass: 0, high: 0 })
+  const lastLyricsKeyRef = useRef<string>('')
 
   // 焦点管理
   useFocusTrap(isPlaylistOpen, playlistDrawerRef)
@@ -158,25 +160,16 @@ export default function Home() {
     )
   }, [playlist, searchTerm])
 
-  // 随机列表逻辑
-  useEffect(() => {
-    if (sortMode === 'random') {
-      setRandomList(shuffleArray(filteredList))
-    } else {
-      setRandomList([])
-    }
-  }, [sortMode, filteredList, setRandomList])
-
   // 排序后的列表
-  const sortedList = useMemo(() => {
-    if (sortMode === 'random') return randomList
+  const likedSongsSet = useMemo(() => new Set(likedSongs), [likedSongs])
 
+  const sortedList = useMemo(() => {
     let list = [...filteredList]
     if (sortMode === 'liked') {
-      list = list.filter(song => likedSongs.includes(decodeURIComponent(song.url)))
+      list = list.filter(song => likedSongsSet.has(decodeURIComponent(song.url)))
     }
     return list
-  }, [sortMode, filteredList, randomList, likedSongs])
+  }, [sortMode, filteredList, likedSongsSet])
 
   // 当前曲目 - 通过解码后的 URL 匹配
   const currentTrack = useMemo(() => {
@@ -184,12 +177,15 @@ export default function Home() {
     return playlist.find(item => decodeURIComponent(item.url) === audioUrl)
   }, [playlist, audioUrl])
 
-  // 当曲目变化时获取歌词
+  // 当前曲目变化时拉取歌词（去重，避免重复请求）
   useEffect(() => {
-    if (currentTrack) {
-      fetchLyrics(currentTrack.singer, currentTrack.title)
-    }
-  }, [currentTrack?.singer, currentTrack?.title, fetchLyrics])
+    if (!currentTrack) return
+    const key = `${currentTrack.singer}-${currentTrack.title}`
+    if (lastLyricsKeyRef.current === key) return
+
+    lastLyricsKeyRef.current = key
+    fetchLyrics(currentTrack.singer, currentTrack.title)
+  }, [currentTrack, fetchLyrics])
 
   // 播放指定曲目
   const playTrack = useCallback((url: string) => {
@@ -236,8 +232,7 @@ export default function Home() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isPlaylistOpen, isSingerListOpen, togglePlaylist, toggleSingerList])
 
-  // 全局键盘快捷键
-  useKeyboardShortcuts({
+  const keyboardHandlers = useMemo(() => ({
     // 空格：播放/暂停
     ' ': () => setIsPlaying(!isPlaying),
     // 左箭头：上一曲
@@ -256,13 +251,17 @@ export default function Home() {
         searchInput?.focus()
       }, 100)
     },
-  }, !(isPlaylistOpen || isSingerListOpen))
+  }), [isPlaying, handlePrev, handleNext, togglePlaylist, toggleSingerList, isPlaylistOpen, setIsPlaying])
+
+  // 全局键盘快捷键
+  useKeyboardShortcuts(keyboardHandlers, !(isPlaylistOpen || isSingerListOpen))
 
   return (
     <>
       {/* 动态背景 - 放在最外层，完全铺满页面 */}
       <DynamicBackground
         isPlaying={isPlaying}
+        suspendEffects={isPlaylistOpen || isSingerListOpen}
         audioDataRef={audioDataRef}
         vinylPosition={{ x: 50, y: 45 }}
         themeColor={themeColor ?? undefined}
@@ -337,7 +336,7 @@ export default function Home() {
         aria-label="播放列表"
         className={`
           fixed inset-y-0 right-0 w-full sm:w-[400px]
-          bg-[#0f172a]/95 backdrop-blur-xl border-l border-white/10 shadow-2xl z-40
+          bg-[#0f172a]/98 border-l border-white/10 shadow-2xl z-40
           transform transition-all duration-500 ease-out
           ${isPlaylistOpen ? 'translate-x-0 opacity-100 pointer-events-auto' : 'translate-x-full opacity-0 pointer-events-none'}
         `}
@@ -379,8 +378,9 @@ export default function Home() {
               currentUrl={audioUrl}
               onPlay={playTrack}
               onLike={toggleLike}
-              likedSongs={new Set(likedSongs)}
+              likedSongs={likedSongsSet}
               searchTerm={searchTerm}
+              isVisible={isPlaylistOpen}
             />
           </div>
         </div>
@@ -394,7 +394,7 @@ export default function Home() {
         aria-label="歌手列表"
         className={`
           fixed inset-y-0 left-0 w-full sm:w-[400px]
-          bg-[#0f172a]/95 backdrop-blur-xl border-r border-white/10 shadow-2xl z-40
+          bg-[#0f172a]/98 border-r border-white/10 shadow-2xl z-40
           transform transition-all duration-500 ease-out
           ${isSingerListOpen ? 'translate-x-0 opacity-100 pointer-events-auto' : '-translate-x-full opacity-0 pointer-events-none'}
         `}
@@ -459,7 +459,7 @@ export default function Home() {
       {/* 移动端遮罩层 - 播放列表 */}
       {isPlaylistOpen && (
         <div
-          className="fixed inset-0 bg-black/60 z-30 backdrop-blur-sm transition-opacity sm:hidden"
+          className="fixed inset-0 bg-black/60 z-30 transition-opacity sm:hidden"
           onClick={togglePlaylist}
           aria-hidden="true"
         />
@@ -468,7 +468,7 @@ export default function Home() {
       {/* 移动端遮罩层 - 歌手列表 */}
       {isSingerListOpen && (
         <div
-          className="fixed inset-0 bg-black/60 z-30 backdrop-blur-sm transition-opacity sm:hidden"
+          className="fixed inset-0 bg-black/60 z-30 transition-opacity sm:hidden"
           onClick={toggleSingerList}
           aria-hidden="true"
         />

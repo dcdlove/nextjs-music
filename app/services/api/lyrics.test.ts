@@ -151,6 +151,23 @@ describe('lyricsApi', () => {
       expect(result?.syncedLyrics).toHaveLength(1)
     })
 
+    it('应该将返回的繁体歌词转换为简体', async () => {
+      const mockResponse = {
+        id: 123,
+        artistName: 'Test Artist',
+        trackName: 'Test Song',
+        plainLyrics: '想聽妳說愛我',
+        syncedLyrics: '[00:12.34]想聽妳說愛我',
+      }
+
+      vi.mocked(apiClient.get).mockResolvedValueOnce(mockResponse)
+
+      const result = await lyricsApi.searchLyrics('Test Artist', 'Test Song')
+
+      expect(result?.plainLyrics).toBe('想听你说爱我')
+      expect(result?.syncedLyrics[0].text).toBe('想听你说爱我')
+    })
+
     it('没有找到歌词时应该返回 null', async () => {
       vi.mocked(apiClient.get).mockResolvedValueOnce(null)
 

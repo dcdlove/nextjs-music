@@ -4,6 +4,7 @@ import { useStore } from '../store';
 
 interface DynamicBackgroundProps {
   isPlaying: boolean;
+  suspendEffects?: boolean;
   audioDataRef?: React.MutableRefObject<{
     intensity: number;
     bass: number;
@@ -21,12 +22,18 @@ interface DynamicBackgroundProps {
 interface FlyingNote {
   id: number;
   note: string;
+  symbol: string;
   color: string;
   startX: number;
   startY: number;
   endX: number;
   endY: number;
+  curveX: number;
+  curveY: number;
   duration: number;
+  rotationStart: number;
+  rotationEnd: number;
+  scalePeak: number;
 }
 
 interface MusicalRipple {
@@ -62,13 +69,14 @@ const MUSICAL_NOTES = [
  * 动态背景组件
  * 根据音频数据生成飞行音符和涟漪动画
  */
-function DynamicBackgroundComponent({ isPlaying, audioDataRef, vinylPosition, themeColor }: DynamicBackgroundProps) {
+function DynamicBackgroundComponent({ isPlaying, suspendEffects = false, audioDataRef, vinylPosition, themeColor }: DynamicBackgroundProps) {
   const [ripples, setRipples] = useState<MusicalRipple[]>([]);
   const [flyingNotes, setFlyingNotes] = useState<FlyingNote[]>([]);
   const requestRef = useRef<number>(0);
-  const lastRippleTime = useRef<number>(0);
   const lastIntensity = useRef<number>(0);
   const beatCooldown = useRef<number>(0);
+  const noteTimersRef = useRef<Set<number>>(new Set());
+  const rippleTimersRef = useRef<Set<number>>(new Set());
 
   // 从 store 获取歌词状态
   const lyrics = useStore(state => state.lyrics);
@@ -118,11 +126,13 @@ function DynamicBackgroundComponent({ isPlaying, audioDataRef, vinylPosition, th
   };
 
   useEffect(() => {
-    // 如果暂停，我们不立即清除以允许冻结，
-    // 但我们停止生成新的。
-    if (!isPlaying) {
+    if (!isPlaying || suspendEffects) {
+      setRipples([]);
+      setFlyingNotes([]);
       return;
     }
+
+    let disposed = false;
 
     const animate = (time: number) => {
       let intensity = 0;
@@ -147,6 +157,7 @@ function DynamicBackgroundComponent({ isPlaying, audioDataRef, vinylPosition, th
 
       if ((isBeat && canSpawn) || forceSpawn) {
         const musicalNote = getMusicalNote(intensity, bass, high);
+        const symbol = getSymbol(musicalNote.name);
 
         // 确定音符特征
         const isLowNote = musicalNote.frequency < 300;
@@ -159,20 +170,35 @@ function DynamicBackgroundComponent({ isPlaying, audioDataRef, vinylPosition, th
         // 如果提供则使用黑胶位置，否则使用中心
         const startX = vinylPosition?.x ?? 50;
         const startY = vinylPosition?.y ?? 30;
+        const deltaX = endX - startX;
+        const deltaY = endY - startY;
 
         // 基于音符类型的飞行持续时间
-        const flightDuration = isHighNote ? 0.6 : isLowNote ? 1.2 : 0.9;
+        const flightDuration = isHighNote ? 0.72 : isLowNote ? 1.32 : 1.02;
+
+        // 生成曲线路径参数，让飞行轨迹更自然
+        const curveX = deltaX * (0.42 + Math.random() * 0.16) + (Math.random() * 12 - 6);
+        const curveY = deltaY * (0.34 + Math.random() * 0.18) - (10 + Math.random() * 14);
+        const rotationStart = Math.random() * 18 - 9;
+        const rotationEnd = rotationStart + (deltaX >= 0 ? 1 : -1) * (20 + Math.random() * 32);
+        const scalePeak = 1.14 + Math.random() * 0.18;
 
         // 创建飞行音符
         const flyingNote: FlyingNote = {
           id: time,
           note: musicalNote.name,
+          symbol,
           color: musicalNote.color,
           startX,
           startY,
           endX,
           endY,
+          curveX,
+          curveY,
           duration: flightDuration,
+          rotationStart,
+          rotationEnd,
+          scalePeak,
         };
 
         setFlyingNotes(prev => {
@@ -181,10 +207,19 @@ function DynamicBackgroundComponent({ isPlaying, audioDataRef, vinylPosition, th
           return newNotes.length > 12 ? newNotes.slice(-12) : newNotes;
         });
 
+        const noteRemoveTimer = window.setTimeout(() => {
+          noteTimersRef.current.delete(noteRemoveTimer);
+          if (disposed) return;
+          setFlyingNotes(prev => prev.filter(note => note.id !== flyingNote.id));
+        }, flightDuration * 1000 + 120);
+        noteTimersRef.current.add(noteRemoveTimer);
+
         // 当音符落地时安排涟漪创建
-        setTimeout(() => {
+        const createRippleTimer = window.setTimeout(() => {
+          rippleTimersRef.current.delete(createRippleTimer);
+          if (disposed) return;
+
           // 创建符号涟漪
-          const symbol = getSymbol(musicalNote.name);
           const normalizedIntensity = Math.max(0.4, intensity / 255); // 确保最小可见度
           const newRipple: MusicalRipple = {
             id: time + 1000,
@@ -203,24 +238,36 @@ function DynamicBackgroundComponent({ isPlaying, audioDataRef, vinylPosition, th
             const newRipples = [...prev, newRipple];
             return newRipples.length > 8 ? newRipples.slice(-8) : newRipples;
           });
-        }, flightDuration * 1000 - 50);
+
+          const rippleRemoveTimer = window.setTimeout(() => {
+            rippleTimersRef.current.delete(rippleRemoveTimer);
+            if (disposed) return;
+            setRipples(prev => prev.filter(ripple => ripple.id !== newRipple.id));
+          }, newRipple.speed * 1000 + 200);
+          rippleTimersRef.current.add(rippleRemoveTimer);
+        }, Math.max(0, flightDuration * 1000 - 50));
+        rippleTimersRef.current.add(createRippleTimer);
 
         beatCooldown.current = time;
       }
 
       lastIntensity.current = intensity;
 
-      // 清理
-      setRipples(prev => prev.filter(r => time - r.id < (r.speed * 1000)));
-      setFlyingNotes(prev => prev.filter(n => time - n.id < (n.duration * 1000 + 100)));
-
       requestRef.current = requestAnimationFrame(animate);
     };
 
     requestRef.current = requestAnimationFrame(animate);
 
-    return () => cancelAnimationFrame(requestRef.current);
-  }, [isPlaying, audioDataRef, vinylPosition]);
+    return () => {
+      disposed = true;
+      cancelAnimationFrame(requestRef.current);
+
+      noteTimersRef.current.forEach(id => window.clearTimeout(id));
+      noteTimersRef.current.clear();
+      rippleTimersRef.current.forEach(id => window.clearTimeout(id));
+      rippleTimersRef.current.clear();
+    };
+  }, [isPlaying, suspendEffects, audioDataRef, vinylPosition]);
 
   return (
     <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
@@ -239,22 +286,21 @@ function DynamicBackgroundComponent({ isPlaying, audioDataRef, vinylPosition, th
         className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[100px] transition-all duration-1000"
         style={{
           backgroundColor: themeColor ? `rgba(${themeColor.primaryRgb}, 0.2)` : 'rgba(147, 51, 234, 0.2)',
-          transform: isPlaying && audioDataRef ? `scale(${1 + (audioDataRef.current.bass / 255) * 0.5})` : 'scale(1)',
-          opacity: isPlaying ? 0.6 : 0.3
+          transform: isPlaying && !suspendEffects && audioDataRef ? `scale(${1 + (audioDataRef.current.bass / 255) * 0.5})` : 'scale(1)',
+          opacity: isPlaying && !suspendEffects ? 0.6 : 0.3
         }}
       />
       <div
         className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full blur-[120px] transition-all duration-1000"
         style={{
           backgroundColor: themeColor ? themeColor.analogous1 : 'rgba(8, 145, 178, 0.1)',
-          transform: isPlaying && audioDataRef ? `scale(${1 + (audioDataRef.current.intensity / 255) * 0.4})` : 'scale(1)',
-          opacity: isPlaying ? 0.5 : 0.2
+          transform: isPlaying && !suspendEffects && audioDataRef ? `scale(${1 + (audioDataRef.current.intensity / 255) * 0.4})` : 'scale(1)',
+          opacity: isPlaying && !suspendEffects ? 0.5 : 0.2
         }}
       />
 
       {/* 飞行音符 */}
-      {flyingNotes.map(note => {
-        const symbol = getSymbol(note.note);
+      {!suspendEffects && flyingNotes.map(note => {
         return (
           <div
             key={note.id}
@@ -262,41 +308,56 @@ function DynamicBackgroundComponent({ isPlaying, audioDataRef, vinylPosition, th
             style={{
               left: `${note.startX}%`,
               top: `${note.startY}%`,
-              animation: `fly-to-destination ${note.duration}s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards`,
-              animationPlayState: isPlaying ? 'running' : 'paused', // 暂停动画
+              animation: `fly-to-destination ${note.duration}s cubic-bezier(0.22, 1, 0.36, 1) forwards`,
+              animationPlayState: isPlaying ? 'running' : 'paused',
               willChange: 'transform, opacity',
-              transform: 'translateZ(0)',
+              transform: 'translate3d(0, 0, 0)',
+              backfaceVisibility: 'hidden',
+              overflow: 'visible',
+              backgroundColor: 'transparent',
               '--end-x': `${note.endX - note.startX}vw`,
               '--end-y': `${note.endY - note.startY}vh`,
+              '--curve-x': `${note.curveX}vw`,
+              '--curve-y': `${note.curveY}vh`,
+              '--r0': `${note.rotationStart}deg`,
+              '--r1': `${(note.rotationStart + note.rotationEnd) / 2}deg`,
+              '--r2': `${note.rotationEnd}deg`,
+              '--scale-peak': `${note.scalePeak}`,
             } as React.CSSProperties}
           >
             {/* 外发光 */}
             <div
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full blur-xl animate-pulse"
+              className="absolute top-1/2 left-1/2 w-4 h-4 rounded-full"
               style={{
-                background: `radial-gradient(circle, ${note.color}, transparent)`,
-                opacity: 0.6,
+                backgroundColor: note.color,
+                boxShadow: `0 0 16px 4px ${note.color}, 0 0 28px 8px ${note.color}`,
+                opacity: 0.38,
+                transform: 'translate(-50%, -50%)',
+                animation: `note-aura ${note.duration}s ease-out forwards`,
                 animationPlayState: isPlaying ? 'running' : 'paused',
+                willChange: 'transform, opacity',
+                pointerEvents: 'none',
               }}
             />
             {/* 音符符号 */}
             <div
-              className="relative text-5xl font-black z-10"
+              className="relative text-5xl font-black z-10 select-none"
               style={{
                 color: note.color,
-                textShadow: `0 0 20px ${note.color}`,
+                textShadow: `0 0 16px ${note.color}`,
                 filter: 'drop-shadow(0 0 8px currentColor)',
                 WebkitTextStroke: `1px rgba(255,255,255,0.3)`,
+                willChange: 'transform, opacity',
               }}
             >
-              {symbol}
+              {note.symbol}
             </div>
           </div>
         );
       })}
 
       {/* 音乐涟漪 - 多层波浪传播 */}
-      {ripples.map(ripple => (
+      {!suspendEffects && ripples.map(ripple => (
         <div
           key={ripple.id}
           className="absolute pointer-events-none"
@@ -338,10 +399,12 @@ function DynamicBackgroundComponent({ isPlaying, audioDataRef, vinylPosition, th
       ))}
 
       {/* Overlay Texture */}
-      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20" />
+      {!suspendEffects && (
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20" />
+      )}
 
       {/* 歌词显示层 */}
-      {lyrics && lyrics.syncedLyrics.length > 0 && (
+      {!suspendEffects && lyrics && lyrics.syncedLyrics.length > 0 && (
         <LyricsDisplay
           lyrics={lyrics.syncedLyrics}
           currentIndex={currentLyricIndex}
@@ -353,15 +416,36 @@ function DynamicBackgroundComponent({ isPlaying, audioDataRef, vinylPosition, th
       <style jsx>{`
         @keyframes fly-to-destination {
           0% {
-            transform: translate(0, 0) scale(1);
-            opacity: 1;
+            transform: translate3d(0, 0, 0) scale(0.86) rotate(var(--r0));
+            opacity: 0;
+            filter: blur(0.5px);
           }
-          50% {
-            transform: translate(calc(var(--end-x) * 0.5), calc(var(--end-y) * 0.5 - 50px)) scale(1.3);
+          14% {
             opacity: 0.9;
           }
+          56% {
+            transform: translate3d(var(--curve-x), var(--curve-y), 0) scale(var(--scale-peak)) rotate(var(--r1));
+            opacity: 0.98;
+            filter: blur(0);
+          }
           100% {
-            transform: translate(var(--end-x), var(--end-y)) scale(0.8);
+            transform: translate3d(var(--end-x), var(--end-y), 0) scale(0.92) rotate(var(--r2));
+            opacity: 0;
+            filter: blur(1px);
+          }
+        }
+
+        @keyframes note-aura {
+          0% {
+            transform: translate(-50%, -50%) scale(0.45);
+            opacity: 0;
+          }
+          28% {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 0.45;
+          }
+          100% {
+            transform: translate(-50%, -50%) scale(1.35);
             opacity: 0;
           }
         }
@@ -401,6 +485,7 @@ const DynamicBackground = memo(DynamicBackgroundComponent, (prevProps, nextProps
 
   return (
     prevProps.isPlaying === nextProps.isPlaying &&
+    prevProps.suspendEffects === nextProps.suspendEffects &&
     vinylEqual &&
     themeEqual
   );

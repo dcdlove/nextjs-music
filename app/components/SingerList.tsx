@@ -1,7 +1,8 @@
 import React, { memo, useMemo, useState, useCallback, useRef, useEffect } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { parseSingers } from '../utils/singerParser'
-import { useSingerAvatar, useSingerGradient } from '../hooks/useSingerAvatar'
+import { SingerAvatarResult } from '../services/avatar'
+import { useSingerAvatars, useSingerGradient } from '../hooks/useSingerAvatar'
 
 /**
  * 歌手信息接口
@@ -12,21 +13,10 @@ interface SingerInfo {
   songs: Array<{ title: string; url: string }>
 }
 
-// 缓存：使用 JSON 字符串作为 key
-let cacheKey: string | null = null
-let cachedSingers: SingerInfo[] | null = null
-
 /**
- * 从歌曲列表提取歌手信息（带缓存）
+ * 从歌曲列表提取歌手信息
  */
 function extractSingers(songs: Array<{ singer: string; title: string; url: string }>): SingerInfo[] {
-  // 生成缓存 key（只比较关键数据）
-  const newKey = `${songs.length}-${songs[0]?.singer || ''}`
-
-  if (cacheKey === newKey && cachedSingers) {
-    return cachedSingers
-  }
-
   const singerMap = new Map<string, Array<{ title: string; url: string }>>()
 
   for (const song of songs) {
@@ -41,19 +31,13 @@ function extractSingers(songs: Array<{ singer: string; title: string; url: strin
     }
   }
 
-  const result = Array.from(singerMap.entries())
+  return Array.from(singerMap.entries())
     .map(([name, singerSongs]) => ({
       name,
       songCount: singerSongs.length,
       songs: singerSongs
     }))
     .sort((a, b) => b.songCount - a.songCount)
-
-  // 更新缓存
-  cacheKey = newKey
-  cachedSingers = result
-
-  return result
 }
 
 /**
@@ -61,6 +45,7 @@ function extractSingers(songs: Array<{ singer: string; title: string; url: strin
  */
 interface SingerItemProps {
   singer: SingerInfo
+  avatar?: SingerAvatarResult
   index: number
   isCurrentSinger: boolean
   isFocused: boolean
@@ -70,14 +55,13 @@ interface SingerItemProps {
 
 const SingerItem = memo(function SingerItem({
   singer,
+  avatar,
   index,
   isCurrentSinger,
   isFocused,
   onFocus,
   onClick
 }: SingerItemProps) {
-  // 获取歌手头像
-  const { avatar } = useSingerAvatar(singer.name)
   // 生成基于歌手名的渐变色（作为背景或备选）
   const gradient = useSingerGradient(singer.name)
 
@@ -202,12 +186,10 @@ function SingerListComponent({
   const listRef = useRef<HTMLDivElement>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
 
-  // 滚动状态追踪（用于优化快速滚动时的渲染）
-  const isScrollingRef = useRef(false)
-  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  // 提取歌手信息（带缓存）
+  // 提取歌手信息
   const allSingers = useMemo(() => extractSingers(songs), [songs])
+  const avatarSingerNames = useMemo(() => allSingers.map(s => s.name), [allSingers])
+  const { avatars } = useSingerAvatars(avatarSingerNames)
 
   // 过滤歌手
   const filteredSingers = useMemo(() => {
@@ -230,32 +212,10 @@ function SingerListComponent({
     overscan: 3, // 减少 overscan 以降低快速滚动时的渲染压力
   })
 
-  // 滚动事件处理 - 追踪滚动状态
-  const handleScroll = useCallback(() => {
-    isScrollingRef.current = true
-
-    if (scrollTimeoutRef.current) {
-      clearTimeout(scrollTimeoutRef.current)
-    }
-
-    scrollTimeoutRef.current = setTimeout(() => {
-      isScrollingRef.current = false
-    }, 150)
-  }, [])
-
   // 同步搜索词
   useEffect(() => {
     setLocalSearchTerm(searchTerm)
   }, [searchTerm])
-
-  // 清理滚动定时器
-  useEffect(() => {
-    return () => {
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current)
-      }
-    }
-  }, [])
 
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setLocalSearchTerm(e.target.value)
@@ -327,7 +287,6 @@ function SingerListComponent({
         aria-label="歌手列表"
         className="flex-1 overflow-y-auto pr-2 custom-scrollbar focus:outline-none"
         tabIndex={0}
-        onScroll={handleScroll}
       >
         {filteredSingers.length > 0 && (
           <div style={{ height: rowVirtualizer.getTotalSize(), width: '100%', position: 'relative' }}>
@@ -347,6 +306,7 @@ function SingerListComponent({
                 >
                   <SingerItem
                     singer={singer}
+                    avatar={avatars.get(singer.name) || undefined}
                     index={virtualRow.index}
                     isCurrentSinger={currentSingerSet.has(singer.name)}
                     isFocused={focusedIndex === virtualRow.index}
@@ -374,9 +334,6 @@ function SingerListComponent({
         )}
       </div>
 
-      <style jsx global>{`
-        @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
-      `}</style>
     </div>
   )
 }

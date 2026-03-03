@@ -23,7 +23,6 @@ export interface Store {
 
   // 播放列表状态
   playlist: Song[]
-  randomList: Song[]
   isLoading: boolean
   error: string | null
 
@@ -52,7 +51,6 @@ export interface Store {
 
   // 播放列表 Actions
   setPlaylist: (songs: Song[]) => void
-  setRandomList: (songs: Song[]) => void
   fetchPlaylist: () => Promise<void>
   playNext: () => void
   playPrev: () => void
@@ -108,18 +106,6 @@ const saveLikedSongs = (songs: string[]): void => {
 }
 
 /**
- * Fisher-Yates 洗牌算法
- */
-export const shuffleArray = <T>(array: T[]): T[] => {
-  const shuffled = [...array]
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
-  }
-  return shuffled
-}
-
-/**
  * 创建 Store
  */
 export const useStore = create<Store>()(
@@ -138,23 +124,33 @@ export const useStore = create<Store>()(
       // 主题色
       themeColor: null,
 
-      setAudioUrl: (url) => set({ audioUrl: url }),
-      setIsPlaying: (playing) => set({ isPlaying: playing }),
-      setCurrentTime: (time) => set({ currentTime: time }),
-      setVolume: (vol) => set({ volume: vol }),
+      setAudioUrl: (url) => set((state) => state.audioUrl === url ? state : { audioUrl: url }),
+      setIsPlaying: (playing) => set((state) => state.isPlaying === playing ? state : { isPlaying: playing }),
+      setCurrentTime: (time) => set((state) => state.currentTime === time ? state : { currentTime: time }),
+      setVolume: (vol) => set((state) => state.volume === vol ? state : { volume: vol }),
       togglePlay: () => set((state) => ({ isPlaying: !state.isPlaying })),
       togglePlaylist: () => set((state) => ({ isPlaylistOpen: !state.isPlaylistOpen })),
       toggleSingerList: () => set((state) => ({ isSingerListOpen: !state.isSingerListOpen })),
-      setThemeColor: (color) => set({ themeColor: color }),
+      setThemeColor: (color) => set((state) => {
+        const prev = state.themeColor
+        if (prev === color) return state
+        if (!prev || !color) return { themeColor: color }
+
+        return (
+          prev.primary === color.primary &&
+          prev.primaryRgb === color.primaryRgb &&
+          prev.secondary === color.secondary &&
+          prev.gradient === color.gradient &&
+          prev.hue === color.hue
+        ) ? state : { themeColor: color }
+      }),
 
       // ===== 播放列表状态 =====
       playlist: [],
-      randomList: [],
       isLoading: false,
       error: null,
 
       setPlaylist: (songs) => set({ playlist: songs, isLoading: false, error: null }),
-      setRandomList: (songs) => set({ randomList: songs }),
 
       fetchPlaylist: async () => {
         set({ isLoading: true, error: null })
@@ -174,37 +170,31 @@ export const useStore = create<Store>()(
       playTrack: (url) => set({ audioUrl: url, isPlaying: true }),
 
       playNext: () => {
-        const { playlist, randomList, audioUrl, sortMode } = get()
+        const { playlist, audioUrl } = get()
         if (playlist.length === 0) return
 
-        const currentList = sortMode === 'random' ? randomList : playlist
-        const listToUse = currentList.length > 0 ? currentList : playlist
-
-        const currentIndex = listToUse.findIndex(
+        const currentIndex = playlist.findIndex(
           (item) => decodeURIComponent(item.url) === audioUrl
         )
-        const nextIndex = (currentIndex + 1) % listToUse.length
+        const nextIndex = (currentIndex + 1) % playlist.length
 
         set({
-          audioUrl: decodeURIComponent(listToUse[nextIndex].url),
+          audioUrl: decodeURIComponent(playlist[nextIndex].url),
           isPlaying: true
         })
       },
 
       playPrev: () => {
-        const { playlist, randomList, audioUrl, sortMode } = get()
+        const { playlist, audioUrl } = get()
         if (playlist.length === 0) return
 
-        const currentList = sortMode === 'random' ? randomList : playlist
-        const listToUse = currentList.length > 0 ? currentList : playlist
-
-        const currentIndex = listToUse.findIndex(
+        const currentIndex = playlist.findIndex(
           (item) => decodeURIComponent(item.url) === audioUrl
         )
-        const prevIndex = (currentIndex - 1 + listToUse.length) % listToUse.length
+        const prevIndex = (currentIndex - 1 + playlist.length) % playlist.length
 
         set({
-          audioUrl: decodeURIComponent(listToUse[prevIndex].url),
+          audioUrl: decodeURIComponent(playlist[prevIndex].url),
           isPlaying: true
         })
       },
@@ -213,8 +203,8 @@ export const useStore = create<Store>()(
       searchTerm: '黄霄雲',
       sortMode: 'default',
 
-      setSearchTerm: (term) => set({ searchTerm: term }),
-      setSortMode: (mode) => set({ sortMode: mode }),
+      setSearchTerm: (term) => set((state) => state.searchTerm === term ? state : { searchTerm: term }),
+      setSortMode: (mode) => set((state) => state.sortMode === mode ? state : { sortMode: mode }),
 
       // ===== 喜欢状态 =====
       likedSongs: loadLikedSongs(),
@@ -242,7 +232,13 @@ export const useStore = create<Store>()(
       isLyricsLoading: false,
       lyricsError: null,
 
-      setLyrics: (lyrics) => set({ lyrics, currentLyricIndex: lyrics ? 0 : -1 }),
+      setLyrics: (lyrics) => set((state) => {
+        const nextIndex = lyrics ? 0 : -1
+        if (state.lyrics === lyrics && state.currentLyricIndex === nextIndex) {
+          return state
+        }
+        return { lyrics, currentLyricIndex: nextIndex }
+      }),
 
       fetchLyrics: async (singer, title) => {
         const cacheKey = `${singer}-${title}`
@@ -274,7 +270,9 @@ export const useStore = create<Store>()(
       updateCurrentLyricIndex: (time) => {
         const { lyrics } = get()
         if (!lyrics || lyrics.syncedLyrics.length === 0) {
-          set({ currentLyricIndex: -1 })
+          if (get().currentLyricIndex !== -1) {
+            set({ currentLyricIndex: -1 })
+          }
           return
         }
 
@@ -295,11 +293,13 @@ export const useStore = create<Store>()(
           }
         }
 
-        set({ currentLyricIndex: index })
+        if (get().currentLyricIndex !== index) {
+          set({ currentLyricIndex: index })
+        }
       },
 
-      setLyricsLoading: (loading) => set({ isLyricsLoading: loading }),
-      setLyricsError: (error) => set({ lyricsError: error }),
+      setLyricsLoading: (loading) => set((state) => state.isLyricsLoading === loading ? state : { isLyricsLoading: loading }),
+      setLyricsError: (error) => set((state) => state.lyricsError === error ? state : { lyricsError: error }),
 
       // ===== 持久化 Actions =====
       savePlayerState: () => {

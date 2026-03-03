@@ -7,7 +7,7 @@ export interface Song {
   null?: boolean;
 }
 
-export type SortMode = 'default' | 'random' | 'liked';
+export type SortMode = 'default' | 'liked';
 
 /**
  * LRC 歌词行

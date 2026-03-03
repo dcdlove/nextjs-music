@@ -103,7 +103,7 @@ npm run test:coverage
 
 ### 2. 播放列表
 - 歌曲搜索 (按歌手名或歌曲名)
-- 三种排序模式: `default` (默认) / `random` (随机) / `liked` (收藏)
+- 两种排序模式: `default` (默认) / `liked` (收藏)
 - 收藏功能 (localStorage 持久化)
 - 虚拟化列表 (@tanstack/react-virtual)
 
@@ -139,7 +139,7 @@ interface Song {
 
 ### 排序模式
 ```typescript
-type SortMode = 'default' | 'random' | 'liked';
+type SortMode = 'default' | 'liked';
 ```
 
 ## API 接口

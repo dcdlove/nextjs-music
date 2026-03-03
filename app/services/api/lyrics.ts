@@ -5,6 +5,7 @@
 
 import { LyricLine, Lyrics } from '../../types'
 import { apiClient } from './client'
+import { toSimplifiedChinese } from '../../utils/chineseConverter'
 
 /**
  * LRClib API 响应类型
@@ -108,13 +109,20 @@ export const lyricsApi = {
       }
 
       // 解析同步歌词
-      const syncedLyrics = parseLrc(response.syncedLyrics)
+      const parsedLyrics = parseLrc(response.syncedLyrics)
+      const plainLyrics = await toSimplifiedChinese(response.plainLyrics || '')
+      const syncedLyrics = await Promise.all(
+        parsedLyrics.map(async (line) => ({
+          ...line,
+          text: await toSimplifiedChinese(line.text),
+        }))
+      )
 
       return {
         id: String(response.id),
         singer: response.artistName,
         title: response.trackName,
-        plainLyrics: response.plainLyrics || '',
+        plainLyrics,
         syncedLyrics,
         source: 'lrclib',
       }
