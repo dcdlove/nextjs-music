@@ -1,6 +1,7 @@
 import React, { memo, useMemo, useState, useCallback, useRef, useEffect } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { parseSingers } from '../utils/singerParser'
+import { useSingerAvatar, useSingerGradient } from '../hooks/useSingerAvatar'
 
 /**
  * 歌手信息接口
@@ -75,6 +76,15 @@ const SingerItem = memo(function SingerItem({
   onFocus,
   onClick
 }: SingerItemProps) {
+  // 获取歌手头像
+  const { avatar } = useSingerAvatar(singer.name)
+  // 生成基于歌手名的渐变色（作为背景或备选）
+  const gradient = useSingerGradient(singer.name)
+
+  // 判断是否显示真实头像
+  const hasRealAvatar = avatar && avatar.source !== 'fallback'
+  const avatarUrl = avatar?.url
+
   return (
     <button
       role="option"
@@ -107,12 +117,13 @@ const SingerItem = memo(function SingerItem({
           w-12 h-12 rounded-full flex items-center justify-center
           relative overflow-hidden flex-shrink-0
           ${isCurrentSinger
-            ? 'bg-gradient-to-br from-cyan-400/20 to-purple-500/20 ring-2 ring-cyan-400/30'
+            ? 'ring-2 ring-cyan-400/30'
             : isFocused
-              ? 'bg-white/10 ring-1 ring-cyan-400/20'
-              : 'bg-white/5 group-hover:bg-white/10'
+              ? 'ring-1 ring-cyan-400/20'
+              : ''
           }
         `}
+        style={{ background: hasRealAvatar ? 'transparent' : gradient }}
       >
         {isCurrentSinger && (
           <div
@@ -120,14 +131,29 @@ const SingerItem = memo(function SingerItem({
             style={{ transform: 'translateZ(0)' }}
           />
         )}
-        <svg
-          className={`relative w-6 h-6 ${isCurrentSinger ? 'text-cyan-400' : isFocused ? 'text-white/70' : 'text-white/40 group-hover:text-white/60'}`}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-        </svg>
+
+        {/* 真实头像或默认图标 */}
+        {hasRealAvatar ? (
+          <img
+            src={avatarUrl}
+            alt={singer.name}
+            className="w-full h-full object-cover rounded-full"
+            loading="lazy"
+            onError={(e) => {
+              // 加载失败时隐藏图片，显示渐变背景
+              (e.target as HTMLImageElement).style.display = 'none'
+            }}
+          />
+        ) : (
+          <svg
+            className={`relative w-6 h-6 ${isCurrentSinger ? 'text-cyan-400' : isFocused ? 'text-white/70' : 'text-white/60'}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+        )}
       </div>
 
       <div className="flex-1 min-w-0">
