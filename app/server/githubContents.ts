@@ -7,6 +7,8 @@ export interface GitHubRepoConfig {
   token: string
   musicDir: string
   playlistPath: string
+  avatarDir: string
+  avatarMapPath: string
 }
 
 interface GitHubContentResponse {
@@ -79,6 +81,8 @@ export function getGitHubRepoConfig(): GitHubRepoConfig {
   const token = process.env.GITHUB_TOKEN || ''
   const musicDir = trimPath(process.env.GITHUB_MUSIC_DIR || 'music')
   const playlistPath = trimPath(process.env.GITHUB_PLAYLIST_PATH || `${musicDir}/data.json`)
+  const avatarDir = trimPath(process.env.GITHUB_AVATAR_DIR || 'img')
+  const avatarMapPath = trimPath(process.env.GITHUB_AVATAR_MAP_PATH || `${avatarDir}/singer-avatars.json`)
 
   return {
     owner,
@@ -87,6 +91,8 @@ export function getGitHubRepoConfig(): GitHubRepoConfig {
     token,
     musicDir,
     playlistPath,
+    avatarDir,
+    avatarMapPath,
   }
 }
 

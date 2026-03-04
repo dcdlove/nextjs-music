@@ -72,6 +72,21 @@ describe('createSingerAvatarService', () => {
   })
 
   describe('getAvatar', () => {
+    it('should return local avatar from api map', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => ({ 周杰伦: 'https://example.com/jay.jpg' }),
+      })
+
+      const service = createSingerAvatarService()
+      const result = await service.getAvatar('周杰伦')
+
+      expect(mockFetch).toHaveBeenCalledWith('/api/singer-avatars', { cache: 'no-store' })
+      expect(result.name).toBe('周杰伦')
+      expect(result.url).toBe('https://example.com/jay.jpg')
+      expect(result.source).toBe('local')
+    })
+
     it('should return fallback avatar when no local config and API fails', async () => {
       // 模拟 API 失败
       mockFetch.mockRejectedValue(new Error('Network error'))

@@ -1,6 +1,6 @@
 /**
  * 歌手头像服务
- * 优先使用本地配置，避免外部 API 调用
+ * 读取服务端远程映射并做前端缓存
  */
 
 export interface SingerAvatarResult {
@@ -24,25 +24,45 @@ export interface AvatarCache {
  */
 export const DEFAULT_AVATAR = '/default-avatar.svg'
 
-// 本地头像映射缓存
+// 远程头像映射缓存
 let localAvatarMap: Record<string, string> | null = null
+let localAvatarMapLoadedAt = 0
+const AVATAR_MAP_CACHE_TTL_MS = 60 * 1000
+
+function normalizeAvatarMap(input: unknown): Record<string, string> {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) {
+    return {}
+  }
+
+  const result: Record<string, string> = {}
+  for (const [key, value] of Object.entries(input as Record<string, unknown>)) {
+    if (typeof key === 'string' && typeof value === 'string' && key.trim() && value.trim()) {
+      result[key.trim()] = value.trim()
+    }
+  }
+  return result
+}
 
 /**
- * 加载本地头像映射
+ * 加载远程头像映射
  */
-async function loadLocalAvatarMap(): Promise<Record<string, string>> {
-  if (localAvatarMap) return localAvatarMap
+async function loadAvatarMap(): Promise<Record<string, string>> {
+  if (localAvatarMap && (Date.now() - localAvatarMapLoadedAt) < AVATAR_MAP_CACHE_TTL_MS) {
+    return localAvatarMap
+  }
 
   try {
-    const response = await fetch('/singer-avatars.json')
+    const response = await fetch('/api/singer-avatars', { cache: 'no-store' })
     if (response.ok) {
-      localAvatarMap = await response.json()
+      const parsed = await response.json()
+      localAvatarMap = normalizeAvatarMap(parsed)
+      localAvatarMapLoadedAt = Date.now()
       return localAvatarMap || {}
     }
   } catch {
     // 加载失败，返回空对象
   }
-  return {}
+  return localAvatarMap || {}
 }
 
 /**
@@ -80,9 +100,9 @@ export function createSingerAvatarService(cache: AvatarCache = createMemoryCache
         return cache.get(normalizedName)!
       }
 
-      // 尝试从本地配置获取
+      // 尝试从远程映射获取
       try {
-        const avatarMap = await loadLocalAvatarMap()
+        const avatarMap = await loadAvatarMap()
         const localAvatar = avatarMap[normalizedName]
         if (localAvatar) {
           const result: SingerAvatarResult = {
@@ -126,6 +146,8 @@ export function createSingerAvatarService(cache: AvatarCache = createMemoryCache
 
     clearCache(): void {
       cache.clear()
+      localAvatarMap = null
+      localAvatarMapLoadedAt = 0
     }
   }
 }

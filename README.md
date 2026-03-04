@@ -77,7 +77,9 @@ nextjs-music/
 │   │   ├── res/            # GitHub 代理接口
 │   │   ├── res2/           # jsDelivr CDN 代理接口
 │   │   ├── playlist/       # 远程播放列表读取接口
-│   │   └── admin/songs/    # 管理端上传接口
+│   │   ├── singer-avatars/ # 歌手头像映射读取接口
+│   │   ├── admin/songs/    # 歌曲上传接口
+│   │   └── admin/avatars/  # 歌手头像上传接口
 │   ├── admin/              # 上传管理页面
 │   ├── components/         # UI 组件
 │   │   ├── Player.tsx      # 核心播放器
@@ -89,7 +91,8 @@ nextjs-music/
 │   │   ├── audio/          # 音频相关 Hooks
 │   │   └── useThemeColor.ts # 主题色生成
 │   ├── services/           # API 服务层
-│   │   └── api/            # 音乐/歌词 API
+│   │   ├── api/            # 音乐/歌词 API
+│   │   └── avatar/         # 歌手头像服务
 │   ├── store/              # Zustand 状态管理
 │   ├── utils/              # 工具函数
 │   │   ├── singerParser.ts # 歌手名解析
@@ -97,7 +100,8 @@ nextjs-music/
 │   ├── server/             # 服务端能力（GitHub Contents API）
 │   └── page.tsx            # 主页面
 ├── public/
-│   └── data.json           # 歌曲元数据
+│   ├── data.json           # 本地回退播放列表
+│   └── default-avatar.svg  # 默认头像
 └── docs/                   # 项目文档
     └── DESIGN_ITERATION_PLAN.md  # 设计迭代计划
 ```
@@ -123,6 +127,10 @@ jsDelivr CDN 代理接口，用于移动端。
 
 读取 `dcdlove/oss` 仓库中的播放列表文件（默认 `music/data.json`），失败时回退到本地 `public/data.json`。
 
+### GET /api/singer-avatars
+
+读取 `dcdlove/oss` 仓库中的歌手头像映射文件（默认 `img/singer-avatars.json`）。
+
 ### POST /api/admin/songs
 
 上传歌曲到 `dcdlove/oss` 并自动更新播放列表 JSON。
@@ -133,6 +141,20 @@ jsDelivr CDN 代理接口，用于移动端。
 - `file`：歌曲文件（仅支持 `.mp3`）
 - `singer`：歌手名
 - `title`：歌曲名
+- `overwrite`：是否覆盖同名文件（可选，`true/false`）
+
+**鉴权：**
+- 请求头 `x-admin-token` 或 `Authorization: Bearer <token>`
+
+### POST /api/admin/avatars
+
+上传歌手头像到 `dcdlove/oss` 的 `img/` 目录，并自动更新头像映射文件。
+
+**请求方式**：`multipart/form-data`
+
+**字段：**
+- `file`：头像文件（支持 `.jpg/.jpeg/.png/.webp/.gif/.avif/.svg`）
+- `singer`：歌手名（用于映射 key）
 - `overwrite`：是否覆盖同名文件（可选，`true/false`）
 
 **鉴权：**
@@ -151,10 +173,13 @@ GITHUB_REPO=oss
 GITHUB_BRANCH=main
 GITHUB_MUSIC_DIR=music
 GITHUB_PLAYLIST_PATH=music/data.json
+GITHUB_AVATAR_DIR=img
+GITHUB_AVATAR_MAP_PATH=img/singer-avatars.json
 
 # 上传大小限制（MB）
 # 建议线上 4（Vercel 免费版），本地可提高
 MAX_UPLOAD_MB=4
+MAX_AVATAR_UPLOAD_MB=2
 ```
 
 ## 管理端使用
@@ -162,6 +187,7 @@ MAX_UPLOAD_MB=4
 启动项目后打开 `http://localhost:3000/admin`：
 - 选择 mp3 文件后会自动从文件名提取“歌手-歌名”并填入表单（可手动修改）
 - 提交后上传文件将统一写入为 `{歌手}-{歌名}.lkmp3`
+- 支持上传歌手头像到 `img/` 目录，并自动更新 `img/singer-avatars.json` 供歌手列表展示
 
 ## 设计风格
 
@@ -180,9 +206,15 @@ MAX_UPLOAD_MB=4
 - **访问方式**: jsDelivr CDN 或 GitHub 代理
 - **命名规范**: `{歌手}-{歌名}.lkmp3`
 
+## 歌手头像资源
+
+- **存储位置**: GitHub 仓库 `dcdlove/oss` 的 `img/` 目录
+- **映射文件**: `img/singer-avatars.json`
+- **展示链路**: 前端调用 `/api/singer-avatars` 读取远端映射
+
 ## 部署
 
-项目默认部署到 Vercel，无需配置环境变量。
+部署到 Vercel 时必须配置环境变量（至少 `ADMIN_TOKEN`、`GITHUB_TOKEN` 及 GitHub 仓库相关项）。
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/dcdlove/nextjs-music)
 

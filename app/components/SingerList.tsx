@@ -62,11 +62,17 @@ const SingerItem = memo(function SingerItem({
   onFocus,
   onClick
 }: SingerItemProps) {
+  const [imageLoadError, setImageLoadError] = useState(false)
+
+  useEffect(() => {
+    setImageLoadError(false)
+  }, [avatar?.url])
+
   // 生成基于歌手名的渐变色（作为背景或备选）
   const gradient = useSingerGradient(singer.name)
 
   // 判断是否显示真实头像
-  const hasRealAvatar = avatar && avatar.source !== 'fallback'
+  const hasRealAvatar = Boolean(avatar && avatar.source !== 'fallback' && avatar.url && !imageLoadError)
   const avatarUrl = avatar?.url
 
   return (
@@ -123,9 +129,9 @@ const SingerItem = memo(function SingerItem({
             alt={singer.name}
             className="w-full h-full object-cover rounded-full"
             loading="lazy"
-            onError={(e) => {
-              // 加载失败时隐藏图片，显示渐变背景
-              (e.target as HTMLImageElement).style.display = 'none'
+            onError={() => {
+              // 加载失败时切换到默认图标 + 渐变背景
+              setImageLoadError(true)
             }}
           />
         ) : (
