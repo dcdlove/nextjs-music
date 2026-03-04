@@ -19,6 +19,8 @@ interface RawSongData {
  * 播放列表响应
  */
 interface PlaylistResponse {
+  message?: string
+  code?: number
   rows: RawSongData[]
 }
 
@@ -75,9 +77,9 @@ const buildSongUrls = (song: RawSongData, isMobile: boolean): Song => {
 export const musicApi = {
   /**
    * 获取播放列表
-   * @param dataUrl - 数据文件路径，默认为 './data.json'
+   * @param dataUrl - 数据文件路径，默认为 '/api/playlist'
    */
-  async fetchPlaylist(dataUrl: string = './data.json'): Promise<Song[]> {
+  async fetchPlaylist(dataUrl: string = '/api/playlist'): Promise<Song[]> {
     const response = await apiClient.get<PlaylistResponse>(dataUrl)
 
     if (!response.rows || !Array.isArray(response.rows)) {

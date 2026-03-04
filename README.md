@@ -75,7 +75,10 @@ nextjs-music/
 ├── app/                    # Next.js App Router
 │   ├── api/                # API 路由层
 │   │   ├── res/            # GitHub 代理接口
-│   │   └── res2/           # jsDelivr CDN 代理接口
+│   │   ├── res2/           # jsDelivr CDN 代理接口
+│   │   ├── playlist/       # 远程播放列表读取接口
+│   │   └── admin/songs/    # 管理端上传接口
+│   ├── admin/              # 上传管理页面
 │   ├── components/         # UI 组件
 │   │   ├── Player.tsx      # 核心播放器
 │   │   ├── SongList.tsx    # 歌曲列表 (虚拟化)
@@ -91,6 +94,7 @@ nextjs-music/
 │   ├── utils/              # 工具函数
 │   │   ├── singerParser.ts # 歌手名解析
 │   │   └── performanceLogger.ts # 性能分析
+│   ├── server/             # 服务端能力（GitHub Contents API）
 │   └── page.tsx            # 主页面
 ├── public/
 │   └── data.json           # 歌曲元数据
@@ -115,6 +119,50 @@ jsDelivr CDN 代理接口，用于移动端。
 **参数:**
 - `name`: 音乐文件名 (需双重 URL 编码)
 
+### GET /api/playlist
+
+读取 `dcdlove/oss` 仓库中的播放列表文件（默认 `music/data.json`），失败时回退到本地 `public/data.json`。
+
+### POST /api/admin/songs
+
+上传歌曲到 `dcdlove/oss` 并自动更新播放列表 JSON。
+
+**请求方式**：`multipart/form-data`
+
+**字段：**
+- `file`：歌曲文件（仅支持 `.mp3`）
+- `singer`：歌手名
+- `title`：歌曲名
+- `overwrite`：是否覆盖同名文件（可选，`true/false`）
+
+**鉴权：**
+- 请求头 `x-admin-token` 或 `Authorization: Bearer <token>`
+
+## 环境变量
+
+```bash
+# 管理接口鉴权
+ADMIN_TOKEN=your_admin_token
+
+# GitHub 仓库写入（需要 repo contents 写权限）
+GITHUB_TOKEN=github_pat_xxx
+GITHUB_OWNER=dcdlove
+GITHUB_REPO=oss
+GITHUB_BRANCH=main
+GITHUB_MUSIC_DIR=music
+GITHUB_PLAYLIST_PATH=music/data.json
+
+# 上传大小限制（MB）
+# 建议线上 4（Vercel 免费版），本地可提高
+MAX_UPLOAD_MB=4
+```
+
+## 管理端使用
+
+启动项目后打开 `http://localhost:3000/admin`：
+- 选择 mp3 文件后会自动从文件名提取“歌手-歌名”并填入表单（可手动修改）
+- 提交后上传文件将统一写入为 `{歌手}-{歌名}.lkmp3`
+
 ## 设计风格
 
 - **主题**: 深色 (深蓝紫渐变)
@@ -130,7 +178,7 @@ jsDelivr CDN 代理接口，用于移动端。
 
 - **存储位置**: GitHub 仓库 `dcdlove/oss` 的 `music/` 目录
 - **访问方式**: jsDelivr CDN 或 GitHub 代理
-- **命名规范**: `{歌手}-{歌名}.lk{扩展名}`
+- **命名规范**: `{歌手}-{歌名}.lkmp3`
 
 ## 部署
 

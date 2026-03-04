@@ -38,6 +38,7 @@ describe('musicApi', () => {
       expect(songs[0].title).toBe('Song1')
       expect(songs[0].url).toBeDefined()
       expect(songs[0].url2).toBeDefined()
+      expect(mockFetch).toHaveBeenCalledWith('/api/playlist', expect.any(Object))
     })
 
     it('处理空播放列表', async () => {
