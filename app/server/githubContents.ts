@@ -129,8 +129,11 @@ export async function getRepoFile(
 
   const data = await response.json() as GitHubContentResponse
 
+  // For binary files, GitHub may return encoding: "none" or other values
+  // Only decode if it's base64 encoded
   if (data.encoding !== 'base64') {
-    throw new GitHubContentsError(`Unsupported encoding for file: ${filePath}`, 500, data.encoding)
+    // Return minimal info for non-base64 files (binary files like audio)
+    return { sha: data.sha, text: '' }
   }
 
   const text = Buffer.from(data.content.replace(/\n/g, ''), 'base64').toString('utf8')
